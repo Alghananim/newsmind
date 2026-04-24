@@ -1,0 +1,272 @@
+# sources.yaml - NewsMind free-tier source list + social via RSSHub.
+# RSSHub URL points to the VPS-hosted instance (http://localhost:1200 in-compose).
+
+sources:
+
+  # ==================== Central Banks ====================
+  - {source_id: fed_press_rss, tier: S, category: CB, access_method: RSS, url: "https://www.federalreserve.gov/feeds/press_all.xml", update_frequency_seconds: 120, reliability_score: 9.5, fallback_source: fed_speeches_rss, enabled: true}
+  - {source_id: fed_speeches_rss, tier: S, category: CB, access_method: RSS, url: "https://www.federalreserve.gov/feeds/speeches.xml", update_frequency_seconds: 180, reliability_score: 9.5, fallback_source: fed_press_rss, enabled: true}
+  - {source_id: fed_testimony_rss, tier: S, category: CB, access_method: RSS, url: "https://www.federalreserve.gov/feeds/testimony.xml", update_frequency_seconds: 300, reliability_score: 9.5, enabled: true}
+  - {source_id: fed_fomc_minutes_rss, tier: S, category: CB, access_method: RSS, url: "https://www.federalreserve.gov/feeds/monetaryfomcminutes.xml", update_frequency_seconds: 600, reliability_score: 9.8, enabled: true}
+  - {source_id: ecb_press_rss, tier: S, category: CB, access_method: RSS, url: "https://www.ecb.europa.eu/rss/press.html", update_frequency_seconds: 120, reliability_score: 9.5, fallback_source: ecb_speeches_rss, enabled: true}
+  - {source_id: ecb_speeches_rss, tier: S, category: CB, access_method: RSS, url: "https://www.ecb.europa.eu/rss/speeches.html", update_frequency_seconds: 180, reliability_score: 9.5, enabled: true}
+  - {source_id: boe_news_rss, tier: A, category: CB, access_method: RSS, url: "https://www.bankofengland.co.uk/rss/news", update_frequency_seconds: 300, reliability_score: 9.0, enabled: true}
+  - {source_id: boj_news_rss, tier: A, category: CB, access_method: RSS, url: "https://www.boj.or.jp/en/rss/whatsnew.xml", update_frequency_seconds: 300, reliability_score: 8.8, enabled: true}
+  - {source_id: rba_news_rss, tier: B, category: CB, access_method: RSS, url: "https://www.rba.gov.au/rss/rss-cb-media-releases.xml", update_frequency_seconds: 600, reliability_score: 8.8, enabled: true}
+  - {source_id: boc_news_rss, tier: B, category: CB, access_method: RSS, url: "https://www.bankofcanada.ca/content_type/press-releases/feed/", update_frequency_seconds: 600, reliability_score: 8.8, enabled: true}
+
+  # ==================== US Statistical ====================
+  - {source_id: bls_rss, tier: S, category: STAT, access_method: RSS, url: "https://www.bls.gov/feed/bls_latest.rss", update_frequency_seconds: 60, reliability_score: 9.5, fallback_source: ff_calendar, enabled: true}
+  - {source_id: bea_rss, tier: S, category: STAT, access_method: RSS, url: "https://www.bea.gov/rss.xml", update_frequency_seconds: 60, reliability_score: 9.5, fallback_source: ff_calendar, enabled: true}
+  - {source_id: census_rss, tier: S, category: STAT, access_method: RSS, url: "https://www.census.gov/economic-indicators/", update_frequency_seconds: 300, reliability_score: 9.0, fallback_source: ff_calendar, enabled: true}
+  - {source_id: treasury_rss, tier: S, category: STAT, access_method: RSS, url: "https://home.treasury.gov/news/press-releases", update_frequency_seconds: 300, reliability_score: 9.2, fallback_source: fed_press_rss, enabled: true}
+  - {source_id: fred_api, tier: A, category: STAT, access_method: API, url: "https://api.stlouisfed.org/fred/", update_frequency_seconds: 600, reliability_score: 9.5, auth_env_var: FRED_API_KEY, enabled: true}
+
+  # ==================== EU Statistical ====================
+  - {source_id: eurostat_rss, tier: S, category: STAT, access_method: RSS, url: "https://ec.europa.eu/eurostat/web/rss", update_frequency_seconds: 300, reliability_score: 9.0, fallback_source: ff_calendar, enabled: true}
+  - {source_id: destatis_html, tier: A, category: STAT, access_method: HTML, url: "https://www.destatis.de/EN/Home/_node.html", update_frequency_seconds: 600, reliability_score: 8.5, fallback_source: eurostat_rss, enabled: true}
+  - {source_id: ifo_rss, tier: A, category: STAT, access_method: RSS, url: "https://www.ifo.de/en/rss", update_frequency_seconds: 600, reliability_score: 8.5, fallback_source: ff_calendar, enabled: true}
+  - {source_id: insee_rss, tier: B, category: STAT, access_method: RSS, url: "https://www.insee.fr/en/rss", update_frequency_seconds: 600, reliability_score: 8.3, enabled: true}
+  - {source_id: istat_rss, tier: B, category: STAT, access_method: RSS, url: "https://www.istat.it/it/rss", update_frequency_seconds: 600, reliability_score: 8.0, enabled: true}
+  - {source_id: ine_html, tier: B, category: STAT, access_method: HTML, url: "https://www.ine.es/", update_frequency_seconds: 900, reliability_score: 7.8, enabled: true}
+
+  # ==================== Economic Calendar ====================
+  - {source_id: ff_calendar, tier: S, category: CAL, access_method: JSON, url: "https://nfs.faireconomy.media/ff_calendar_thisweek.json", update_frequency_seconds: 60, reliability_score: 8.8, enabled: true}
+
+  # ==================== News Wires ====================
+  - {source_id: reuters_business_rss, tier: A, category: WIRE, access_method: RSS, url: "https://www.reuters.com/arc/outboundfeeds/rss/category/business/?outputType=xml", update_frequency_seconds: 60, reliability_score: 9.3, fallback_source: ap_business_rss, enabled: true}
+  - {source_id: ap_business_rss, tier: A, category: WIRE, access_method: RSS, url: "https://apnews.com/apf-business", update_frequency_seconds: 120, reliability_score: 9.0, enabled: true}
+  - {source_id: ft_markets_rss, tier: B, category: WIRE, access_method: RSS, url: "https://www.ft.com/markets?format=rss", update_frequency_seconds: 180, reliability_score: 8.8, enabled: true}
+  - {source_id: wsj_markets_rss, tier: B, category: WIRE, access_method: RSS, url: "https://feeds.a.dj.com/rss/RSSMarketsMain.xml", update_frequency_seconds: 180, reliability_score: 8.8, enabled: true}
+  - {source_id: cnbc_us_markets_rss, tier: B, category: WIRE, access_method: RSS, url: "https://www.cnbc.com/id/15839135/device/rss/rss.html", update_frequency_seconds: 180, reliability_score: 8.5, enabled: true}
+  - {source_id: marketwatch_rss, tier: B, category: WIRE, access_method: RSS, url: "https://www.marketwatch.com/rss/realtimeheadlines", update_frequency_seconds: 120, reliability_score: 8.3, enabled: true}
+  - {source_id: economist_rss, tier: C, category: WIRE, access_method: RSS, url: "https://www.economist.com/finance-and-economics/rss.xml", update_frequency_seconds: 900, reliability_score: 8.5, enabled: true}
+  - {source_id: politico_eu_rss, tier: C, category: WIRE, access_method: RSS, url: "https://www.politico.eu/rss/", update_frequency_seconds: 600, reliability_score: 8.0, enabled: true}
+  - {source_id: bbc_business_rss, tier: C, category: WIRE, access_method: RSS, url: "http://feeds.bbci.co.uk/news/business/rss.xml", update_frequency_seconds: 300, reliability_score: 8.3, enabled: true}
+  - {source_id: aljazeera_rss, tier: C, category: WIRE, access_method: RSS, url: "https://www.aljazeera.com/xml/rss/all.xml", update_frequency_seconds: 300, reliability_score: 7.8, enabled: true}
+
+  # ==================== Positioning + Alt Data ====================
+  - {source_id: cftc_cot_csv, tier: B, category: ALT, access_method: HTML, url: "https://www.cftc.gov/dea/futures/deacmelf.htm", update_frequency_seconds: 86400, reliability_score: 9.0, enabled: true}
+  - {source_id: coingecko_btc, tier: C, category: ALT, access_method: API, url: "https://api.coingecko.com/api/v3/simple/price", update_frequency_seconds: 60, reliability_score: 8.5, enabled: true}
+  - {source_id: wiki_pageviews, tier: C, category: ALT, access_method: API, url: "https://wikimedia.org/api/rest_v1/metrics/pageviews/", update_frequency_seconds: 86400, reliability_score: 9.0, enabled: true}
+  - {source_id: gdelt_csv, tier: C, category: GEO, access_method: HTML, url: "https://www.gdeltproject.org/data.html", update_frequency_seconds: 3600, reliability_score: 8.0, enabled: true}
+  - {source_id: state_gov_rss, tier: B, category: GEO, access_method: RSS, url: "https://www.state.gov/feed/", update_frequency_seconds: 600, reliability_score: 8.5, enabled: true}
+  - {source_id: un_news_rss, tier: C, category: GEO, access_method: RSS, url: "https://news.un.org/en/rss", update_frequency_seconds: 600, reliability_score: 8.0, enabled: true}
+
+  # ==================== Truth Social (Trump) ====================
+  - {source_id: truthsocial_realdonaldtrump, tier: S, category: SOCIAL, access_method: RSS, url: "https://truthsocial.com/@realDonaldTrump/rss", update_frequency_seconds: 60, reliability_score: 8.0, enabled: false}
+  - {source_id: truthsocial_potus, tier: S, category: SOCIAL, access_method: RSS, url: "https://truthsocial.com/@POTUS/rss", update_frequency_seconds: 60, reliability_score: 8.0, enabled: false}
+
+  # ==================== X/Twitter via RSSHub (on VPS) ====================
+  - source_id: twitter_usd_officials_s
+    tier: S
+    category: SOCIAL
+    access_method: RSSHUB
+    url: "http://rsshub:1200/twitter/user/"
+    update_frequency_seconds: 60
+    reliability_score: 8.5
+    enabled: false
+    headers:
+      X-Accounts: "federalreserve,POTUS,WhiteHouse,USTreasury,realDonaldTrump,PressSec"
+
+  - source_id: twitter_usd_fast_tape_s
+    tier: S
+    category: SOCIAL
+    access_method: RSSHUB
+    url: "http://rsshub:1200/twitter/user/"
+    update_frequency_seconds: 45
+    reliability_score: 8.0
+    enabled: false
+    headers:
+      X-Accounts: "DeItaone,LiveSquawk,FirstSquawk,NewsSquawk,Walter_Bloomberg"
+
+  - source_id: twitter_usd_fed_whisperers_s
+    tier: S
+    category: SOCIAL
+    access_method: RSSHUB
+    url: "http://rsshub:1200/twitter/user/"
+    update_frequency_seconds: 60
+    reliability_score: 8.8
+    enabled: false
+    headers:
+      X-Accounts: "NickTimiraos,CraigTorres,gregip,jeannasmialek,HeatherLong"
+
+  - source_id: twitter_usd_regional_feds_a
+    tier: A
+    category: SOCIAL
+    access_method: RSSHUB
+    url: "http://rsshub:1200/twitter/user/"
+    update_frequency_seconds: 180
+    reliability_score: 7.5
+    enabled: false
+    headers:
+      X-Accounts: "NYFed,ChicagoFed,SFedNews,DallasFed,BostonFed,AtlantaFed,MinneapolisFed,clevelandfed,stlouisfed,PhillyFedUSA,KansasCityFed,RichmondFed"
+
+  - source_id: twitter_usd_top_analysts_a
+    tier: A
+    category: SOCIAL
+    access_method: RSSHUB
+    url: "http://rsshub:1200/twitter/user/"
+    update_frequency_seconds: 300
+    reliability_score: 7.0
+    enabled: false
+    headers:
+      X-Accounts: "elerianm,LizAnnSonders,RaoulGMI,biancoresearch,convertbond,MacroAlf,jsblokland"
+
+  - source_id: twitter_eur_officials_s
+    tier: S
+    category: SOCIAL
+    access_method: RSSHUB
+    url: "http://rsshub:1200/twitter/user/"
+    update_frequency_seconds: 60
+    reliability_score: 8.5
+    enabled: false
+    headers:
+      X-Accounts: "ecb,Lagarde,EU_Commission,vonderleyen,bundesbank,banquedefrance,banca_italia"
+
+  - source_id: twitter_eur_ecb_board_s
+    tier: S
+    category: SOCIAL
+    access_method: RSSHUB
+    url: "http://rsshub:1200/twitter/user/"
+    update_frequency_seconds: 120
+    reliability_score: 8.0
+    enabled: false
+    headers:
+      X-Accounts: "Isabel_Schnabel,Lane_ECB,Knot_DNB,Nagel_Bbk,KazaksMartins,villroygal"
+
+  - source_id: twitter_eur_analysts_a
+    tier: A
+    category: SOCIAL
+    access_method: RSSHUB
+    url: "http://rsshub:1200/twitter/user/"
+    update_frequency_seconds: 300
+    reliability_score: 7.5
+    enabled: false
+    headers:
+      X-Accounts: "fwred,POLITICOEurope,economistmeg,KatzOlaf,ColbyLSmith,ReutersEurope"
+
+  - source_id: twitter_wires_breaking_s
+    tier: S
+    category: SOCIAL
+    access_method: RSSHUB
+    url: "http://rsshub:1200/twitter/user/"
+    update_frequency_seconds: 45
+    reliability_score: 9.0
+    enabled: false
+    headers:
+      X-Accounts: "BNONews,Reuters,AP,AFP,BBCBreaking"
+
+  - source_id: twitter_gov_geopolitical_s
+    tier: S
+    category: SOCIAL
+    access_method: RSSHUB
+    url: "http://rsshub:1200/twitter/user/"
+    update_frequency_seconds: 60
+    reliability_score: 8.5
+    enabled: false
+    headers:
+      X-Accounts: "StateDept,NATO,UN,DeptofDefense,USEmbassy"
+
+  - source_id: twitter_heads_of_state_s
+    tier: S
+    category: SOCIAL
+    access_method: RSSHUB
+    url: "http://rsshub:1200/twitter/user/"
+    update_frequency_seconds: 60
+    reliability_score: 8.0
+    enabled: false
+    headers:
+      X-Accounts: "IsraeliPM,ZelenskyyUa,KremlinRussia_E,MFA_Russia,MFA_China,SpokespersonCHN"
+
+  - source_id: twitter_regional_wires_a
+    tier: A
+    category: SOCIAL
+    access_method: RSSHUB
+    url: "http://rsshub:1200/twitter/user/"
+    update_frequency_seconds: 180
+    reliability_score: 7.5
+    enabled: false
+    headers:
+      X-Accounts: "AJEnglish,AlArabiya_Eng,TimesofIsrael,visegrad24,KyivPost,XinhuaEnglish,SCMPNews"
+
+  - source_id: twitter_iran_official_s
+    tier: S
+    category: SOCIAL
+    access_method: RSSHUB
+    url: "http://rsshub:1200/twitter/user/"
+    update_frequency_seconds: 60
+    reliability_score: 8.0
+    enabled: false
+    headers:
+      X-Accounts: "khamenei_ir,IRIMFA_EN,PressTV,IRNA_English"
+
+  - source_id: twitter_iran_media_a
+    tier: A
+    category: SOCIAL
+    access_method: RSSHUB
+    url: "http://rsshub:1200/twitter/user/"
+    update_frequency_seconds: 180
+    reliability_score: 7.0
+    enabled: false
+    headers:
+      X-Accounts: "Tasnimnews_Fa,MehrnewsCom,FarsNews_Agency"
+
+  - source_id: twitter_axis_resistance_a
+    tier: A
+    category: SOCIAL
+    access_method: RSSHUB
+    url: "http://rsshub:1200/twitter/user/"
+    update_frequency_seconds: 120
+    reliability_score: 6.5
+    enabled: false
+    headers:
+      X-Accounts: "HezbollahPress,AnsarAllahYemen,HamasInfoEn"
+
+  - source_id: twitter_gulf_officials_a
+    tier: A
+    category: SOCIAL
+    access_method: RSSHUB
+    url: "http://rsshub:1200/twitter/user/"
+    update_frequency_seconds: 300
+    reliability_score: 7.5
+    enabled: false
+    headers:
+      X-Accounts: "SaudiMOFA_EN,MOFAUAE,MofaQatar_EN,KingSalman,HHShkMohd"
+
+  - source_id: twitter_osint_a
+    tier: A
+    category: SOCIAL
+    access_method: RSSHUB
+    url: "http://rsshub:1200/twitter/user/"
+    update_frequency_seconds: 120
+    reliability_score: 6.5
+    enabled: false
+    headers:
+      X-Accounts: "sentdefender,AuroraIntel,OliverAlexander1,TheInsiderPaper"
+
+  - source_id: twitter_trade_sanctions_a
+    tier: A
+    category: SOCIAL
+    access_method: RSSHUB
+    url: "http://rsshub:1200/twitter/user/"
+    update_frequency_seconds: 300
+    reliability_score: 7.0
+    enabled: false
+    headers:
+      X-Accounts: "USTradeRep,EU_Trade,USTreasury_OFAC,WhiteHouse_Econ"
+
+  - source_id: twitter_energy_oil_b
+    tier: B
+    category: SOCIAL
+    access_method: RSSHUB
+    url: "http://rsshub:1200/twitter/user/"
+    update_frequency_seconds: 300
+    reliability_score: 7.0
+    enabled: false
+    headers:
+      X-Accounts: "EIAgov,OPECSecretariat,IEA,ReutersEnergy"
+
+  # ==================== Telegram + Reddit (off by default) ====================
+  - {source_id: telegram_bot, tier: B, category: SOCIAL, access_method: BOT, url: "telegram://bot", update_frequency_seconds: 0, reliability_score: 8.0, auth_env_var: TELEGRAM_BOT_TOKEN, enabled: false}
+  - {source_id: reddit_api, tier: C, category: SOCIAL, access_method: API, url: "https://oauth.reddit.com/", update_frequency_seconds: 300, reliability_score: 7.0, auth_env_var: REDDIT_CLIENT_ID, enabled: false}
