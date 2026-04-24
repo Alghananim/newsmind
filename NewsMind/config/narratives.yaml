@@ -1,0 +1,211 @@
+# narratives.yaml - Operator-curated list of active macro narratives.
+# Source: Shiller Narrative Economics + operator judgment for 2026.
+
+narratives:
+
+  - narrative_id: us_exceptionalism
+    label: "US Growth Exceptionalism"
+    description: >
+      US growth and productivity remain materially stronger than the
+      Eurozone, keeping the dollar structurally bid.
+    initial_stage: 4
+    max_age_days: 180
+    reinforce_keywords:
+      - US growth beat
+      - strong NFP
+      - US consumer resilient
+      - US productivity
+      - AI capex
+      - EU recession
+      - EU stagnation
+    undermine_keywords:
+      - US recession
+      - Eurozone recovery
+      - US consumer weakness
+      - US layoffs wave
+    eur_usd_bias_when_strong: short
+
+  - narrative_id: ai_productivity_boom
+    label: "AI Productivity Boom"
+    description: Generative AI broadly deployed, lifts US productivity and equities.
+    initial_stage: 5
+    max_age_days: 270
+    reinforce_keywords:
+      - AI productivity
+      - enterprise AI
+      - capex surge
+      - data center buildout
+      - compute demand
+    undermine_keywords:
+      - AI bubble burst
+      - capex pullback
+      - data center glut
+    eur_usd_bias_when_strong: short
+
+  - narrative_id: eurozone_growth_gap
+    label: "Eurozone Growth Gap"
+    description: Eurozone persistently underperforms US, EUR structurally weak.
+    initial_stage: 4
+    max_age_days: 180
+    reinforce_keywords:
+      - German recession
+      - Eurozone weak
+      - EU manufacturing slump
+      - EU PMI contraction
+      - ECB dovish
+    undermine_keywords:
+      - Eurozone rebound
+      - EU beats estimates
+      - German recovery
+      - ECB hawkish
+    eur_usd_bias_when_strong: short
+
+  - narrative_id: fed_pivot_to_cuts
+    label: "Fed Pivot To Cuts"
+    description: Market expects Fed to cut aggressively; pricing in faster than Fed guidance.
+    initial_stage: 2
+    max_age_days: 90
+    reinforce_keywords:
+      - rate cut expected
+      - dovish Fed
+      - Powell dovish
+      - cooling inflation
+      - softening labour
+      - cuts priced in
+    undermine_keywords:
+      - hawkish Fed
+      - sticky inflation
+      - hot NFP
+      - no cuts
+    eur_usd_bias_when_strong: long
+
+  - narrative_id: safe_haven_dollar
+    label: "Safe Haven Dollar"
+    description: Global risk-off drives capital into USD regardless of domestic fundamentals.
+    initial_stage: 3
+    max_age_days: 360
+    reinforce_keywords:
+      - risk off
+      - flight to safety
+      - VIX spike
+      - credit stress
+      - banking crisis
+      - geopolitical shock
+    undermine_keywords:
+      - risk on
+      - relief rally
+      - VIX collapse
+    eur_usd_bias_when_strong: short
+
+  - narrative_id: dollar_hegemony_decline
+    label: "Dollar Hegemony Decline"
+    description: BRICS dedollarisation and reserve diversification weakening USD long-term.
+    initial_stage: 2
+    max_age_days: 540
+    reinforce_keywords:
+      - BRICS currency
+      - dedollarisation
+      - reserve diversification
+      - yuan settlement
+      - gold reserves rising
+    undermine_keywords:
+      - USD dominance
+      - dollar reserves rising
+      - BRICS discord
+    eur_usd_bias_when_strong: long
+
+  - narrative_id: fed_independence_risk
+    label: "Fed Independence At Risk"
+    description: Political pressure on Fed independence; Trump Powell criticism.
+    initial_stage: 2
+    max_age_days: 180
+    reinforce_keywords:
+      - Fed independence
+      - political pressure Fed
+      - fire Powell
+      - reshape Fed board
+      - Trump Powell
+      - Trump Fed
+      - replace Powell
+      - Trump attacks Fed
+    undermine_keywords:
+      - Fed credibility
+      - institutional norms
+      - Powell stays
+    eur_usd_bias_when_strong: long
+
+  - narrative_id: us_fiscal_crisis
+    label: "US Fiscal Sustainability"
+    description: Concerns about US deficit, debt-ceiling, credit-rating risk.
+    initial_stage: 3
+    max_age_days: 360
+    reinforce_keywords:
+      - debt ceiling
+      - fiscal cliff
+      - deficit concern
+      - US credit rating
+      - downgrade US
+    undermine_keywords:
+      - fiscal deal
+      - debt ceiling raised
+      - deficit narrowing
+    eur_usd_bias_when_strong: long
+
+  - narrative_id: trump_tariff_regime
+    label: "Trump Tariff Regime"
+    description: Active protectionism via executive tariffs. Drives risk-off USD bid.
+    initial_stage: 3
+    max_age_days: 180
+    reinforce_keywords:
+      - Trump tariff
+      - Trump announces tariff
+      - Truth Social tariff
+      - new tariff
+      - retaliatory tariff
+      - trade war
+    undermine_keywords:
+      - tariff rolled back
+      - tariff pause
+      - trade deal signed
+    eur_usd_bias_when_strong: short
+
+  - narrative_id: iran_mideast_risk
+    label: "Iran / Middle East Tail Risk"
+    description: >
+      Active Iran-Israel escalation. Drives risk-off USD + oil premium
+      that bleeds into EU growth fears.
+    initial_stage: 3
+    max_age_days: 180
+    reinforce_keywords:
+      - Iranian missile
+      - Iran attacks
+      - Israeli strike
+      - Hezbollah launches
+      - Khamenei warns
+      - Strait of Hormuz
+      - Houthi attack
+      - tanker attack
+      - IRGC
+    undermine_keywords:
+      - ceasefire holds
+      - nuclear deal progress
+      - Iran-US talks
+      - de-escalation
+    eur_usd_bias_when_strong: short
+
+  - narrative_id: nuclear_proliferation
+    label: "Iran Nuclear Breakout"
+    description: Iran moving toward weapons-grade uranium; JCPOA collapse dynamics.
+    initial_stage: 3
+    max_age_days: 270
+    reinforce_keywords:
+      - uranium enrichment
+      - nuclear breakout
+      - IAEA violation
+      - snapback sanctions
+      - Iran nuclear weapon
+    undermine_keywords:
+      - nuclear deal
+      - JCPOA revival
+      - Iran cooperates
+    eur_usd_bias_when_strong: short
