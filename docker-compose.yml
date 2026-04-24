@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  newsmind:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: newsmind
+    restart: unless-stopped
+    environment:
+      - POLL_INTERVAL_SEC=60
+      - CHECKPOINT_EVERY_CYCLES=5
+      # Optional: Twitter API credentials for RSSHub (if set)
+      # - TWITTER_AUTH_TOKEN=...
+    volumes:
+      - newsmind_state:/app/NewsMind/state
+    networks:
+      - newsmind_net
+      - rsshub_net          # external: reach RSSHub on same host
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+networks:
+  newsmind_net:
+    driver: bridge
+  rsshub_net:
+    external: true
+    name: rsshub-cs4k_default
+
+volumes:
+  newsmind_state:
