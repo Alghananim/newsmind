@@ -1,0 +1,150 @@
+# keywords.yaml - Tier-X keyword dictionaries for headline scanner.
+# Categories mirror unscheduled event ids. Exclude lists catch false positives.
+
+categories:
+
+  war_keywords:
+    - war
+    - invasion
+    - missile strike
+    - airstrike
+    - military offensive
+    - troops crossing
+    - incursion
+    - armed conflict
+    - combat operations
+
+  bank_stress:
+    - bank run
+    - insolvent
+    - bailout
+    - deposit outflow
+    - liquidity crisis
+    - receivership
+    - FDIC takeover
+    - emergency capital
+    - counterparty risk
+
+  sovereign_default:
+    - sovereign default
+    - IMF bailout
+    - debt restructuring
+    - downgrade to junk
+
+  central_bank_emerg:
+    - emergency meeting
+    - emergency cut
+    - emergency hike
+    - unscheduled policy
+    - extraordinary measure
+
+  trade_war:
+    - new tariff
+    - trade war
+    - export control
+    - retaliatory tariff
+    - chip ban
+    - sanctions package
+
+  election_risk:
+    - election upset
+    - far-right victory
+    - far-left victory
+    - coalition collapse
+    - no-confidence vote
+
+  cyber_attack_macro:
+    - cyber attack
+    - ransomware attack
+    - infrastructure outage
+    - critical breach
+
+  natural_disaster:
+    - magnitude earthquake
+    - major earthquake
+    - tsunami warning
+    - hurricane landfall
+    - major flooding
+
+  referendum:
+    - referendum result
+    - Brexit
+    - independence vote
+
+  assassination:
+    - assassinated
+    - political killing
+    - head of state killed
+
+  pandemic_escalation:
+    - lockdown announced
+    - novel outbreak
+    - variant of concern
+    - emergency quarantine
+
+  opec_production:
+    - OPEC cut
+    - OPEC raise
+    - OPEC production
+
+  currency_intervention:
+    - currency intervention
+    - verbal intervention
+    - excessive volatility
+
+  potus_statement:
+    - Truth Social post
+    - Trump said
+    - Trump declares
+    - Trump announces
+    - Trump warns
+    - Trump threatens tariff
+    - POTUS declares
+    - Executive order signed
+
+  iran_escalation:
+    - Iranian missile
+    - IRGC strike
+    - Iran retaliation
+    - Iran strikes back
+    - Khamenei warns
+    - Iran vows response
+    - Israeli strike on Iran
+    - Iran attacks Israel
+    - Hezbollah launches
+    - Houthi attack
+    - Strait of Hormuz
+    - Hormuz closed
+
+  nuclear_escalation:
+    - uranium enrichment
+    - nuclear test
+    - nuclear breakout
+    - snapback sanctions
+    - JCPOA collapse
+    - IAEA reports violation
+
+exclude:
+
+  war_keywords:
+    - war on inflation
+    - war on poverty
+    - war of words
+    - price war
+    - war chest
+    - war on drugs
+    - bidding war
+    - culture war
+
+  bank_stress:
+    - data bank
+    - bank holiday
+    - blood bank
+
+  trade_war:
+    - trade off
+    - trade show
+    - trade press
+
+  cyber_attack_macro:
+    - cyber monday
