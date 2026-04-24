@@ -1,0 +1,90 @@
+# events.yaml - NewsMind (minimal core; expand via GitHub UI).
+scheduled:
+  - {id: us.nfp, label: "Non-Farm Payrolls", country: US, currency: USD, tier: 1, channel: growth, pip_per_sigma: 45, decay_hours: 5, halt_minus_min: 30, halt_plus_min: 30, direction_rule: usd_positive_on_beat, source_primary: bls_rss}
+  - {id: us.cpi, label: "CPI (Headline + Core)", country: US, currency: USD, tier: 1, channel: rates, pip_per_sigma: 40, decay_hours: 6, halt_minus_min: 30, halt_plus_min: 30, direction_rule: usd_positive_on_beat, source_primary: bls_rss}
+  - {id: us.core_pce, label: "Core PCE Deflator", country: US, currency: USD, tier: 1, channel: rates, pip_per_sigma: 25, decay_hours: 4, halt_minus_min: 30, halt_plus_min: 30, direction_rule: usd_positive_on_beat, source_primary: bea_rss}
+  - {id: us.fomc_decision, label: "FOMC Rate Decision", country: US, currency: USD, tier: 1, channel: rates, pip_per_sigma: 60, decay_hours: 12, halt_minus_min: 30, halt_plus_min: 90, direction_rule: usd_positive_on_beat, source_primary: fed_press_rss}
+  - {id: us.fomc_press, label: "FOMC Press Conference", country: US, currency: USD, tier: 1, channel: rates, pip_per_sigma: 40, decay_hours: 10, halt_minus_min: 0, halt_plus_min: 60, direction_rule: hawkish_press_usd_positive, source_primary: fed_press_rss}
+  - {id: us.powell_testimony, label: "Powell Testimony", country: US, currency: USD, tier: 1, channel: rates, pip_per_sigma: 30, decay_hours: 6, halt_minus_min: 30, halt_plus_min: 60, direction_rule: hawkish_text_usd_positive, source_primary: fed_speeches_rss}
+  - {id: us.fomc_minutes, label: "FOMC Minutes", country: US, currency: USD, tier: 2, channel: rates, pip_per_sigma: 15, decay_hours: 3, halt_minus_min: 15, halt_plus_min: 30, direction_rule: hawkish_text_usd_positive, source_primary: fed_press_rss}
+  - {id: us.retail_sales, label: "Retail Sales", country: US, currency: USD, tier: 2, channel: growth, pip_per_sigma: 15, decay_hours: 2.5, halt_minus_min: 15, halt_plus_min: 15, direction_rule: usd_positive_on_beat, source_primary: census_rss}
+  - {id: us.ism_mfg, label: "ISM Manufacturing PMI", country: US, currency: USD, tier: 2, channel: growth, pip_per_sigma: 13, decay_hours: 2, halt_minus_min: 15, halt_plus_min: 15, direction_rule: usd_positive_on_beat, source_primary: ff_calendar}
+  - {id: us.ism_svc, label: "ISM Services PMI", country: US, currency: USD, tier: 2, channel: growth, pip_per_sigma: 12, decay_hours: 2, halt_minus_min: 15, halt_plus_min: 15, direction_rule: usd_positive_on_beat, source_primary: ff_calendar}
+  - {id: us.gdp_advance, label: "GDP (Advance)", country: US, currency: USD, tier: 2, channel: growth, pip_per_sigma: 15, decay_hours: 3, halt_minus_min: 15, halt_plus_min: 15, direction_rule: usd_positive_on_beat, source_primary: bea_rss}
+  - {id: us.jobless_claims, label: "Initial Jobless Claims", country: US, currency: USD, tier: 2, channel: growth, pip_per_sigma: 6, decay_hours: 1, halt_minus_min: 10, halt_plus_min: 10, direction_rule: usd_negative_on_beat, source_primary: bls_rss}
+  - {id: us.fed_speak_voter, label: "Fed Voter Speech", country: US, currency: USD, tier: 2, channel: rates, pip_per_sigma: 10, decay_hours: 2, halt_minus_min: 10, halt_plus_min: 20, direction_rule: hawkish_text_usd_positive, source_primary: fed_speeches_rss}
+  - {id: eu.ecb_decision, label: "ECB Monetary Policy Decision", country: EU, currency: EUR, tier: 1, channel: rates, pip_per_sigma: 40, decay_hours: 8, halt_minus_min: 30, halt_plus_min: 90, direction_rule: eur_positive_on_hike, source_primary: ecb_press_rss}
+  - {id: eu.ecb_press, label: "ECB Press Conference", country: EU, currency: EUR, tier: 1, channel: rates, pip_per_sigma: 35, decay_hours: 8, halt_minus_min: 0, halt_plus_min: 60, direction_rule: hawkish_press_eur_positive, source_primary: ecb_press_rss}
+  - {id: eu.ecb_minutes, label: "ECB Meeting Accounts", country: EU, currency: EUR, tier: 2, channel: rates, pip_per_sigma: 10, decay_hours: 3, halt_minus_min: 15, halt_plus_min: 15, direction_rule: hawkish_text_eur_positive, source_primary: ecb_press_rss}
+  - {id: eu.cpi_flash, label: "Eurozone CPI Flash", country: EU, currency: EUR, tier: 2, channel: rates, pip_per_sigma: 15, decay_hours: 4, halt_minus_min: 15, halt_plus_min: 15, direction_rule: eur_positive_on_beat, source_primary: eurostat_rss}
+  - {id: eu.gdp_flash, label: "Eurozone GDP Flash", country: EU, currency: EUR, tier: 2, channel: growth, pip_per_sigma: 15, decay_hours: 3, halt_minus_min: 15, halt_plus_min: 15, direction_rule: eur_positive_on_beat, source_primary: eurostat_rss}
+  - {id: eu.pmi_mfg_flash, label: "Eurozone PMI Manufacturing Flash", country: EU, currency: EUR, tier: 2, channel: growth, pip_per_sigma: 10, decay_hours: 2, halt_minus_min: 15, halt_plus_min: 15, direction_rule: eur_positive_on_beat, source_primary: ff_calendar}
+  - {id: eu.ifo_de, label: "German Ifo Business Climate", country: DE, currency: EUR, tier: 2, channel: growth, pip_per_sigma: 10, decay_hours: 2, halt_minus_min: 15, halt_plus_min: 15, direction_rule: eur_positive_on_beat, source_primary: ifo_rss}
+
+unscheduled:
+  - id: gp.war_outbreak
+    label: "Geopolitical War Outbreak"
+    trigger: keyword_match
+    keywords: [war, invasion, missile strike, airstrike, military offensive]
+    exclude_keywords: [war on inflation, war of words, price war]
+    min_sources: 2
+    source_tiers: [S, A]
+    tier: 1
+    channel: safe_haven
+    default_direction: usd_bullish_risk_off
+    default_pip: 150
+
+  - id: gp.bank_failure
+    label: "Banking System Stress"
+    trigger: keyword_match
+    keywords: [bank run, insolvent, bailout, liquidity crisis]
+    min_sources: 2
+    source_tiers: [S, A]
+    tier: 1
+    channel: safe_haven
+    default_direction: usd_bullish_risk_off
+    default_pip: 120
+
+  - id: gp.tariff_announce
+    label: "Tariff / Trade War Announcement"
+    trigger: keyword_match
+    keywords: [new tariff, trade war, export control, retaliatory tariff]
+    and_keywords:
+      - [Trump, tariff]
+      - [POTUS, tariff]
+      - [Truth Social, tariff]
+    min_sources: 2
+    source_tiers: [S, A]
+    tier: 2
+    channel: growth
+    default_direction: usd_bullish_risk_off
+    default_pip: 50
+
+  - id: gp.potus_fed_attack
+    label: "Presidential Fed Criticism"
+    trigger: keyword_match
+    keywords: [fire Powell, replace Powell]
+    and_keywords:
+      - [Trump, Powell]
+      - [Trump, Fed]
+    exclude_keywords: [Powell speaks, Powell said]
+    min_sources: 1
+    source_tiers: [S]
+    tier: 2
+    channel: rates
+    default_direction: usd_bullish_risk_off
+    default_pip: 40
+
+  - id: gp.iran_israel_escalation
+    label: "Iran-Israel Military Escalation"
+    trigger: keyword_match
+    keywords: [Iranian missile, IRGC attack, Strait of Hormuz, Israeli airstrike]
+    and_keywords:
+      - [Iran, Israel, strike]
+      - [Hezbollah, strike]
+    min_sources: 2
+    source_tiers: [S, A]
+    tier: 1
+    channel: safe_haven
+    default_direction: usd_bullish_risk_off
+    default_pip: 120
