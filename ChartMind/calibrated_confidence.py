@@ -79,7 +79,7 @@ class CalibratedConfidence:
 
     # Minimum trades in a bucket before we trust its adjusted rate.
     # Below this count, we blend the bucket's actual_rate back toward
-    # the raw value (soft shrinkage). Prevents a 2-trade bucket min
+    # the raw value (soft shrinkage). Prevents a 2-trade bucket from
     # claiming certainty.
     MIN_TRUSTED_N: int = 15
     # Threshold above which we call the mapping "high trust" overall.
