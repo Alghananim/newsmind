@@ -80,6 +80,7 @@ class AnalysisReport:
     by_hour: dict = field(default_factory=dict)
     by_regime: dict = field(default_factory=dict)
     by_news_state: dict = field(default_factory=dict)
+    by_grade: dict = field(default_factory=dict)
 
     # ---- counters from runner --------------------------------------
     bars_seen: int = 0
@@ -171,6 +172,7 @@ class BacktestAnalyzer:
         by_hour = self._group_stats(trades, lambda t: self._hour_bucket(t))
         by_regime = self._group_stats(trades, lambda t: t.market_regime or "unknown")
         by_news = self._group_stats(trades, lambda t: t.news_state or "calm")
+        by_grade = self._group_stats(trades, lambda t: self._grade_bucket(t))
 
         # Equity curve sampled daily
         equity_daily = self._sample_equity_daily()
@@ -192,6 +194,7 @@ class BacktestAnalyzer:
             monthly=monthly, walk_forward_sqn=wf,
             by_setup=by_setup, by_hour=by_hour,
             by_regime=by_regime, by_news_state=by_news,
+            by_grade=by_grade,
             bars_seen=self.result.bars_seen,
             signals_generated=self.result.signals_generated,
             entries_filled=self.result.entries_filled,
@@ -271,6 +274,17 @@ class BacktestAnalyzer:
                        else "-" * max(0, int(-pnl / 100)))
                 lines.append(f"  {ym}  ${pnl:>+10,.0f}  n={n_:>3}  {bar[:40]}")
             lines.append("")
+        if r.by_grade:
+            lines.append("")
+            lines.append("BY GRADE (A+ / A / B / C, by ChartMind confidence)")
+            lines.append("-" * 52)
+            for k in ("A+", "A", "B", "C"):
+                if k in r.by_grade:
+                    st = r.by_grade[k]
+                    lines.append(
+                        f"  {k:5s}  n={st['n']:>4d}  E={st['expectancy_r']:>+6.3f}R  "
+                        f"WR={int(round(st['win_rate']*100)):>3d}%  PF={st.get('profit_factor', 0):>5.2f}"
+                    )
         if r.by_setup:
             lines.append("BY SETUP_TYPE")
             lines.append("-------------")
@@ -368,10 +382,15 @@ class BacktestAnalyzer:
         win_rate = len(wins) / len(rs)
         avg_win = statistics.fmean(wins) if wins else 0.0
         avg_loss = abs(statistics.fmean(losses)) if losses else 0.0
+        sum_wins = sum(wins) if wins else 0.0
+        sum_losses_abs = abs(sum(losses)) if losses else 0.0
+        pf = (sum_wins / sum_losses_abs) if sum_losses_abs > 0 else (
+            999.0 if sum_wins > 0 else 0.0)
         return {
             "n": len(rs),
             "win_rate": win_rate,
             "expectancy_r": win_rate * avg_win - (1 - win_rate) * avg_loss,
+            "profit_factor": pf,
             "sqn": self._sqn(rs),
         }
 
@@ -413,6 +432,15 @@ class BacktestAnalyzer:
             if lo <= h < hi:
                 return f"{lo:02d}-{hi:02d}_UTC"
         return "unknown"
+
+    @staticmethod
+    def _grade_bucket(t) -> str:
+        """Map plan_confidence to A+/A/B/C grade. Matches Engine defaults."""
+        c = float(getattr(t, "plan_confidence", 0.0) or 0.0)
+        if c >= 0.80: return "A+"
+        if c >= 0.65: return "A"
+        if c >= 0.50: return "B"
+        return "C"
 
     def _sample_equity_daily(self) -> list:
         if not self.result.equity_curve:

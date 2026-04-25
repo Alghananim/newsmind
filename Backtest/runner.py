@@ -203,6 +203,7 @@ class BacktestRunner:
 
         # Internal state
         self._pending: Optional[_PendingSignal] = None
+        self._halt_resume_date = None  # set when DD halt fires in pause-mode
         self._open: Optional[_OpenPosition] = None
         self._risk_state: Optional[RiskState] = None
 
@@ -257,10 +258,28 @@ class BacktestRunner:
                     state=self._risk_state, new_today=bar.time.date(),
                 )
 
-            # Halt the entire backtest if max-DD kill switch fired,
-            # UNLESS the variant disabled the halt for diagnosis.
-            if self._risk_state.halted_permanent and not self.variant.disable_max_dd_halt:
-                break
+            # Halt handling: kill / pause / off based on variant.
+            if self._risk_state.halted_permanent:
+                if self.variant.halt_pause_days > 0:
+                    # Pause-and-resume mode: wait N days, then reset the
+                    # risk state with starting_equity = current_equity
+                    # and resume trading. Counts each pause as a halt event.
+                    if self._halt_resume_date is None:
+                        self._halt_resume_date = bar.time.date() + timedelta(
+                            days=self.variant.halt_pause_days)
+                        self.halt_count += 1
+                    if bar.time.date() < self._halt_resume_date:
+                        continue   # skip this bar — still on pause
+                    # Resume: rebuild risk state from current equity.
+                    cur_eq = self._risk_state.current_equity
+                    self._risk_state = RiskState.initial(
+                        starting_equity=cur_eq,
+                        today=bar.time.date(),
+                    )
+                    self._halt_resume_date = None
+                elif not self.variant.disable_max_dd_halt:
+                    break
+                # else: disable_max_dd_halt is True; just continue
 
             # ----- Phase A: fill any pending signal from previous bar
             self._fill_pending(bar)
@@ -458,6 +477,16 @@ class BacktestRunner:
         if len(self._history) < 50:
             return
 
+        # ATR surge filter (variant-driven). Skip new entries when
+        # short-term volatility blows out vs longer-term — catches
+        # news spikes / wars / BoJ shocks where stops blow through.
+        if self.variant.atr_surge_threshold > 0:
+            atr_short = self._compute_atr(self._history, n=14)
+            atr_long = self._compute_atr(self._history, n=50)
+            if atr_long > 0 and (atr_short / atr_long) > self.variant.atr_surge_threshold:
+                self.rej_atr_surge += 1
+                return
+
         # Build the DataFrame from rolling history
         try:
             import pandas as pd
@@ -610,6 +639,25 @@ class BacktestRunner:
     # ==================================================================
     # Helpers.
     # ==================================================================
+    def _compute_atr(self, history: list, n: int = 14) -> float:
+        """True-range based ATR over the last n bars in `history`.
+        Returns 0.0 if insufficient data. Uses pip units for clarity.
+        """
+        if len(history) < n + 1:
+            return 0.0
+        recent = history[-(n+1):]
+        trs = []
+        for i in range(1, len(recent)):
+            cur = recent[i]
+            prev = recent[i-1]
+            tr = max(
+                cur.high - cur.low,
+                abs(cur.high - prev.close),
+                abs(cur.low - prev.close),
+            )
+            trs.append(tr / self.config.pair_pip)
+        return sum(trs) / len(trs) if trs else 0.0
+
     def _open_time_budget(self) -> int:
         """The time budget the open position was opened with.
 
@@ -626,6 +674,8 @@ class BacktestRunner:
         self.bars_seen = 0
         self.signals_generated = 0
         self.rej_variant = 0
+        self.rej_atr_surge = 0
+        self.halt_count = 0
         self.entries_filled = 0
         self.rej_session = 0
         self.rej_calendar = 0

@@ -90,6 +90,19 @@ class VariantFilter:
     # Lower = forces faster exits; higher = lets trades breathe longer.
     time_budget_override: int | None = None
 
+    # Pause-and-resume on DD halt. 0 = use the original kill switch
+    # (halt forever once 15% DD breached). N > 0 = pause N days after
+    # the halt, then RESET the risk state (peak = current equity) and
+    # resume trading. Models a real operator who takes a forced break
+    # but doesn't liquidate the account. Recommended N = 7 (one week).
+    halt_pause_days: int = 0
+
+    # ATR / volatility surge filter. If max(recent_atr) / mean(longer_atr)
+    # > atr_surge_threshold, skip new entries this bar. Catches news
+    # spikes, BoJ shocks, geopolitical event candles. 0 = disabled.
+    # Recommended: 3.0 (skip when current vol >3x recent average).
+    atr_surge_threshold: float = 0.0
+
     # ===============================================================
     # The decision function.
     # ===============================================================
@@ -442,6 +455,40 @@ VARIANTS: dict[str, VariantFilter] = {
         blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
         trail_stop_after_r=3.0,
         risk_pct_override=1.5,
+    ),
+
+    # ------------------------------------------------------------------
+    # Round-6: ROBUST production candidates with halt_pause + ATR filter.
+    # These are the round-5 per-pair winners hardened with:
+    #   - halt_pause_days=7 (resume after a week, instead of dying)
+    #   - atr_surge_threshold=3.0 (skip news-spike candles)
+    # Tested via walk_forward.py over rolling 90-day quarters.
+    # ------------------------------------------------------------------
+    "robust_eur": VariantFilter(
+        name="robust_eur",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=2.5,
+        risk_pct_override=1.5,
+        halt_pause_days=7,
+        atr_surge_threshold=3.0,
+    ),
+    "robust_jpy": VariantFilter(
+        name="robust_jpy",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=1.5,
+        risk_pct_override=1.0,
+        halt_pause_days=7,
+        atr_surge_threshold=3.0,
+    ),
+    "robust_gbp": VariantFilter(
+        name="robust_gbp",
+        allowed_hours_utc=(8, 9, 10, 11, 12, 13, 14, 15),
+        allowed_setups=("signal_entry_continuation", "pattern_double_bottom"),
+        min_confidence=0.6,
+        min_rr=2.0,
+        risk_pct_override=1.5,
+        halt_pause_days=7,
+        atr_surge_threshold=3.0,
     ),
 }
 

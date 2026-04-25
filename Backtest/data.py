@@ -252,7 +252,9 @@ class BacktestData:
                 ask = ask_by_t.get(c.time)
                 if bid is None or ask is None:
                     continue
-                spread_pips = (ask.close - bid.close) / 0.0001 if (
+                # Pair-aware pip definition (0.01 for JPY pairs).
+                pip_for_pair = 0.01 if "JPY" in self._pair.upper() else 0.0001
+                spread_pips = (ask.close - bid.close) / pip_for_pair if (
                     ask.close > bid.close > 0
                 ) else 0.5
                 bar = BacktestBar(

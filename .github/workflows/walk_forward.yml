@@ -1,0 +1,94 @@
+# Walk-forward robustness validation — rolling 90-day quarters across
+# 2 years of real OANDA data. Each (variant, pair) is a parallel job.
+
+name: WalkForward
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/walk_forward.py'
+      - 'scripts/aggregate_walk_forward.py'
+      - '.github/workflows/walk_forward.yml'
+  workflow_dispatch:
+
+jobs:
+  matrix:
+    name: WF ${{ matrix.variant }} on ${{ matrix.pair }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: robust_eur
+            pair: EUR/USD
+          - variant: robust_jpy
+            pair: USD/JPY
+          - variant: robust_gbp
+            pair: GBP/USD
+          # Anchor: same variants without halt_pause to compare
+          - variant: trail_r25_risk15
+            pair: EUR/USD
+          - variant: jp_champion_tight_trail
+            pair: USD/JPY
+          - variant: gb_ultra_risk15
+            pair: GBP/USD
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: Install
+        run: pip install -r requirements.txt
+      - name: Run walk-forward
+        env:
+          VARIANT_NAME: ${{ matrix.variant }}
+          PAIR: ${{ matrix.pair }}
+          OANDA_API_TOKEN: ${{ secrets.OANDA_API_TOKEN }}
+          OANDA_ACCOUNT_ID: ${{ secrets.OANDA_ACCOUNT_ID }}
+          OANDA_ENVIRONMENT: ${{ secrets.OANDA_ENVIRONMENT || 'practice' }}
+          OUTPUT_DIR: ${{ github.workspace }}/wf_output
+        run: |
+          mkdir -p $OUTPUT_DIR
+          python scripts/walk_forward.py
+      - name: Upload per-job
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wf-${{ matrix.variant }}-${{ matrix.pair == 'EUR/USD' && 'eur_usd' || matrix.pair == 'USD/JPY' && 'usd_jpy' || 'gbp_usd' }}
+          path: wf_output/
+          retention-days: 30
+
+  aggregate:
+    name: WF leaderboard
+    needs: matrix
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Download all
+        uses: actions/download-artifact@v4
+        with:
+          path: wf_output/
+          pattern: wf-*
+          merge-multiple: true
+      - name: Aggregate
+        env:
+          WF_DIR: ${{ github.workspace }}/wf_output
+        run: |
+          ls -la wf_output/ || true
+          python scripts/aggregate_walk_forward.py
+      - name: Upload combined
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wf-leaderboard
+          path: wf_output/
+          retention-days: 90
