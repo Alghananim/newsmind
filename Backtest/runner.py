@@ -410,16 +410,6 @@ class BacktestRunner:
         pos = self._open
         pos.bars_held += 1
 
-        # Pre-news safety exit: close 30 min before any T1 event
-        if self._check_pre_news_exit(bar):
-            exit_fill = self.costs.simulate_market_exit(
-                direction=pos.direction,
-                current_bid=bar.bid_close, current_ask=bar.ask_close,
-                current_mid=bar.close, fill_time=bar.time, lot=pos.lot_size,
-            )
-            self._close(pos, fill=exit_fill, exit_reason="pre_news", bar=bar)
-            return
-
         # Update MFE / MAE on this bar's range.
         if pos.direction == "long":
             mfe_candidate = (bar.high - pos.entry_price) / self.config.pair_pip
