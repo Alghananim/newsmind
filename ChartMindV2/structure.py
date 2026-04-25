@@ -56,19 +56,21 @@ def _swing_extremes(bars: list, lookback: int = 50, span: int = 5) -> tuple[list
 
 
 def _prior_day_levels(bars: list) -> tuple[float, float]:
-    """Compute previous trading day's high and low from M15 bars."""
+    """Compute previous trading day's high and low from M15 bars.
+    Only scans the last 200 bars (~2 days) for performance.
+    """
     if not bars:
         return 0.0, 0.0
-    last_date = bars[-1].time.date()
-    # Walk back to find first bar of the previous day
+    tail = bars[-200:] if len(bars) > 200 else bars
+    last_date = tail[-1].time.date()
     prior_day = None
-    for b in reversed(bars):
+    for b in reversed(tail):
         if b.time.date() < last_date:
             prior_day = b.time.date()
             break
     if prior_day is None:
-        return bars[-1].high, bars[-1].low
-    prior_bars = [b for b in bars if b.time.date() == prior_day]
+        return tail[-1].high, tail[-1].low
+    prior_bars = [b for b in tail if b.time.date() == prior_day]
     if not prior_bars:
         return bars[-1].high, bars[-1].low
     return max(b.high for b in prior_bars), min(b.low for b in prior_bars)
@@ -78,11 +80,13 @@ def _session_open(bars: list) -> float:
     """Return the open of the current NY-session (first bar at/after 13:00 UTC today).
 
     Rough but good enough — different DST periods shift NY by 1h.
+    Bounded to last 100 bars for performance.
     """
     if not bars:
         return 0.0
-    today = bars[-1].time.date()
-    today_bars = [b for b in bars if b.time.date() == today]
+    tail = bars[-100:] if len(bars) > 100 else bars
+    today = tail[-1].time.date()
+    today_bars = [b for b in tail if b.time.date() == today]
     if not today_bars:
         return bars[-1].open
     # First bar at or after 12:00 UTC (NY 7-8am)

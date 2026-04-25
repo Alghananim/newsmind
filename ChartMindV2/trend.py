@@ -158,6 +158,9 @@ class TrendAnalyzer:
         to H1 and H4 internally (4 M15 bars = 1 H1; 16 M15 = 1 H4).
 
         m15_bars: list of objects with .open .high .low .close (chronological).
+
+        Performance: only the last 4000 M15 bars (~6 weeks) are needed
+        for H4 EMA200 — using more wastes time.
         """
         if len(m15_bars) < 200:
             return TrendReading(
@@ -166,10 +169,14 @@ class TrendAnalyzer:
                 h4_adx=0.0, h1_adx=0.0, m15_adx=0.0,
             )
 
-        h1 = self._aggregate(m15_bars, factor=4)
-        h4 = self._aggregate(m15_bars, factor=16)
+        # Bound work to the last ~4000 bars (enough for H4 EMA200 = 16*200 = 3200)
+        recent = m15_bars[-4000:] if len(m15_bars) > 4000 else m15_bars
+        m15_recent = recent[-1000:]  # M15 only needs 200 bars * 5 buffer
 
-        m15_dir, m15_adx = self._tf_direction(m15_bars)
+        h1 = self._aggregate(recent, factor=4)
+        h4 = self._aggregate(recent, factor=16)
+
+        m15_dir, m15_adx = self._tf_direction(m15_recent)
         h1_dir, h1_adx = self._tf_direction(h1)
         h4_dir, h4_adx = self._tf_direction(h4)
 
