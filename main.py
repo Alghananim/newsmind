@@ -320,4 +320,9 @@ def main() -> int:
                 nm.close()
             except Exception:
                 pass
-        _log("State saved. Goodb
+        _log("State saved. Goodbye.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
