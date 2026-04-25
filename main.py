@@ -178,8 +178,12 @@ def main() -> int:
     #            Best was kill_asia at -15% (regime-specific).
     #            DO NOT TRADE this pair until edge is found.
     PRODUCTION_DEFAULTS = {
-        "EUR/USD": "kill_asia",   # +4.58% over 2y, PF 1.10 (real OANDA)
-        "USD/JPY": "kill_asia",   # +1.09% over 2y, PF 1.02 (real OANDA)
+        # production_safe applies ALL audit-driven commandments:
+        # kill_asia + spread reject + daily cap + cooling-off + ATR
+        # filter + min_grade B + grade-scaled risk + pre-news close +
+        # NO halt_pause + NO drop_doubles + min_rr 2.0
+        "EUR/USD": "production_safe",
+        "USD/JPY": "production_safe",
         # "GBP/USD": INTENTIONALLY EXCLUDED — no variant survived 2-yr WF
     }
     variant_name = (os.environ.get("VARIANT_FILTER", "").strip()

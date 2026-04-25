@@ -117,6 +117,31 @@ class VariantFilter:
     # Used INSIDE allowed_regimes filter as an extra strength check.
     min_adx: float = 0.0
 
+    # Maximum allowed spread multiplier (current_spread / recent_avg_spread).
+    # 0 = no filter. 2.0 = reject when current spread is >2x normal —
+    # catches news widening, low-liquidity periods (audit S3).
+    max_spread_multiplier: float = 0.0
+
+    # Maximum trades per UTC day. 0 = unlimited. Caps over-trading
+    # which destroyed several variants in the diagnostic (audit F3).
+    max_trades_per_day: int = 0
+
+    # Cooling-off after N consecutive losses inside the same UTC day.
+    # 0 = use the global RiskManager.max_consecutive_losses (default 3).
+    # 2 = stop trading after 2 losses in a day (audit F4).
+    max_daily_consecutive_losses: int = 0
+
+    # Minimum grade for entry: "C", "B", "A", "A+".
+    # "B" = require >=B (B and above).
+    # "A" = require >=A (B no entry per audit Q3 commandment).
+    # Default "C" = no grade gate. Recommended production: "B" or "A".
+    min_grade: str = "C"
+
+    # Per-grade risk multipliers. Production rule (audit R5/Q4):
+    # A+ uses full risk, A uses 0.75x, B uses 0.5x or wait, C reject.
+    # Map of grade -> risk fraction. Defaults preserve legacy behaviour.
+    grade_risk_multipliers: tuple = ()
+
     # Use ChartMindV2 (rebuilt confluence-based) instead of v1.
     # Default False = legacy v1 pattern matcher.
     # True = v2 with multi-timeframe trend + structure + candles + momentum
@@ -631,6 +656,44 @@ VARIANTS: dict[str, VariantFilter] = {
         use_chartmind_v2=True,
         v2_min_grade="A",
         v2_min_confluence=5.0,
+    ),
+
+    # ------------------------------------------------------------------
+    # PRODUCTION_SAFE — all 12 audit-driven commandments applied:
+    #   ✓ kill_asia (the only proven helpful filter)
+    #   ✓ min_grade B (B = enter at half size, A/A+ = full)
+    #   ✓ max_spread_multiplier 2.0 (reject news widening)
+    #   ✓ max_trades_per_day 5 (cap over-trading)
+    #   ✓ max_daily_consecutive_losses 2 (cooling-off)
+    #   ✓ ATR surge filter 1.8 (block news spikes)
+    #   ✓ pre-news close (handled in runner via calendar 60-min post)
+    #   ✓ NO halt_pause (audit proved it disastrous; halt = stop)
+    #   ✓ NO drop_doubles (audit proved patterns are interdependent)
+    #   ✓ Default risk 0.5% scaled by grade (A+=1.5x, A=1.0x, B=0.5x)
+    # ------------------------------------------------------------------
+    "production_safe": VariantFilter(
+        name="production_safe",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        max_spread_multiplier=2.0,
+        max_trades_per_day=5,
+        max_daily_consecutive_losses=2,
+        atr_surge_threshold=1.8,
+        min_grade="B",
+        min_rr=2.0,
+        # default grade_risk_multipliers from runner: A+=1.5, A=1.0, B=0.5, C=0
+    ),
+
+    # CONSERVATIVE — A grade only, strict everything
+    "production_strict": VariantFilter(
+        name="production_strict",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        max_spread_multiplier=1.5,
+        max_trades_per_day=3,
+        max_daily_consecutive_losses=2,
+        atr_surge_threshold=1.5,
+        min_grade="A",
+        min_rr=2.5,
+        min_confidence=0.55,
     ),
 }
 

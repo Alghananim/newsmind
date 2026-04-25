@@ -108,7 +108,7 @@ class HistoricalCalendar:
                  start: Optional[date] = None,
                  end: Optional[date] = None,
                  pre_minutes_t1: int = 15,
-                 post_minutes_t1: int = 15,
+                 post_minutes_t1: int = 60,
                  pre_minutes_t2: int = 5,
                  post_minutes_t2: int = 5):
         if ZoneInfo is None:

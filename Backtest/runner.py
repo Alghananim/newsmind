@@ -207,6 +207,9 @@ class BacktestRunner:
         # Internal state
         self._pending: Optional[_PendingSignal] = None
         self._halt_resume_date = None  # set when DD halt fires in pause-mode
+        self._trades_today = 0
+        self._consec_losses_today = 0
+        self._current_day = None
         self._last_regime: Optional[str] = None
         self._last_adx: float = 0.0
         self._open: Optional[_OpenPosition] = None
@@ -262,6 +265,9 @@ class BacktestRunner:
                 self._risk_state = self.risk.on_new_day(
                     state=self._risk_state, new_today=bar.time.date(),
                 )
+                # Reset daily variant-level counters
+                self._trades_today = 0
+                self._consec_losses_today = 0
 
             # Halt handling: kill / pause / off based on variant.
             if self._risk_state.halted_permanent:
@@ -355,6 +361,9 @@ class BacktestRunner:
             self.rej_unfilled_limit += 1
             return
 
+        # Increment daily trade counter for the variant cap
+        self._trades_today += 1
+
         self._open = _OpenPosition(
             direction=sig.direction,
             setup_type=sig.setup_type,
@@ -375,6 +384,17 @@ class BacktestRunner:
         )
         self.entries_filled += 1
 
+    def _check_pre_news_exit(self, bar) -> bool:
+        """Return True if a T1 news event is within 30 minutes; runner
+        should close any open position to avoid spike risk (audit N4)."""
+        try:
+            from datetime import timedelta as _td
+            window_end = bar.time + _td(minutes=30)
+            is_blk, _ev = self.calendar.is_blackout(window_end, tiers=("T1",))
+            return is_blk
+        except Exception:
+            return False
+
     def _manage_open(self, bar: BacktestBar) -> None:
         """Phase B: see if THIS bar's range hit our stop or target.
 
@@ -389,6 +409,16 @@ class BacktestRunner:
             return
         pos = self._open
         pos.bars_held += 1
+
+        # Pre-news safety exit: close 30 min before any T1 event
+        if self._check_pre_news_exit(bar):
+            exit_fill = self.costs.simulate_market_exit(
+                direction=pos.direction,
+                current_bid=bar.bid_close, current_ask=bar.ask_close,
+                current_mid=bar.close, fill_time=bar.time, lot=pos.lot_size,
+            )
+            self._close(pos, fill=exit_fill, exit_reason="pre_news", bar=bar)
+            return
 
         # Update MFE / MAE on this bar's range.
         if pos.direction == "long":
@@ -492,6 +522,28 @@ class BacktestRunner:
                 self.rej_atr_surge += 1
                 return
 
+        # Spread filter (variant-driven, audit S3). Reject if current
+        # spread is N x the rolling average (catches news widening).
+        if self.variant.max_spread_multiplier > 0 and len(self._history) >= 50:
+            cur_spread = getattr(bar, "spread_pips", 0.5) or 0.5
+            recent = [getattr(b, "spread_pips", 0.5) or 0.5 for b in self._history[-50:]]
+            avg_spread = sum(recent) / len(recent)
+            if avg_spread > 0 and (cur_spread / avg_spread) > self.variant.max_spread_multiplier:
+                self.rej_spread += 1
+                return
+
+        # Daily trade cap (audit F3). Stop entering after N trades today.
+        if (self.variant.max_trades_per_day > 0
+                and self._trades_today >= self.variant.max_trades_per_day):
+            self.rej_daily_cap += 1
+            return
+
+        # Daily cooling-off (audit F4). Stop after N consecutive losses today.
+        if (self.variant.max_daily_consecutive_losses > 0
+                and self._consec_losses_today >= self.variant.max_daily_consecutive_losses):
+            self.rej_cooling_off += 1
+            return
+
         # Regime filter (variant-driven). Classify the current bar's
         # market regime and reject if not in the allow-list.
         # The walk-forward audit showed pattern detector collapses in
@@ -543,6 +595,14 @@ class BacktestRunner:
             self.rej_variant += 1
             return
 
+        # Grade gate (audit Q3): only enter when plan grade meets min.
+        plan_grade = getattr(plan, "grade", None) or self._derive_grade_from_confidence(
+            float(getattr(plan, "confidence", 0.0)))
+        order = {"C": 0, "B": 1, "A": 2, "A+": 3}
+        if order.get(plan_grade, 0) < order.get(self.variant.min_grade, 0):
+            self.rej_grade += 1
+            return
+
         self.signals_generated += 1
 
         # Risk check + sizing
@@ -556,6 +616,15 @@ class BacktestRunner:
             self.rej_risk += 1
             return
 
+        # Apply grade-based risk multiplier (audit R5/Q4).
+        # Mapping default: A+=1.5, A=1.0, B=0.5, C=0.0 (no trade)
+        grade_mult = self._grade_risk_multiplier(plan_grade)
+        if grade_mult <= 0:
+            self.rej_grade += 1
+            return
+        sized_lot = verdict.sized_lot * grade_mult
+        sized_risk_currency = verdict.sized_risk_currency * grade_mult
+
         # Queue the signal for fill on the NEXT bar
         self._pending = _PendingSignal(
             direction=plan.direction,
@@ -567,8 +636,8 @@ class BacktestRunner:
             plan_confidence=float(getattr(plan, "confidence", 0.0)),
             plan_rationale=str(getattr(plan, "rationale", ""))[:500],
             time_budget_bars=int(getattr(plan, "time_budget_bars", 12)),
-            sized_lot=verdict.sized_lot,
-            sized_risk_currency=verdict.sized_risk_currency,
+            sized_lot=sized_lot,
+            sized_risk_currency=sized_risk_currency,
             signal_bar_time=bar.time,
         )
 
@@ -593,6 +662,11 @@ class BacktestRunner:
         self._risk_state = self.risk.on_trade_closed(
             state=self._risk_state, pnl_currency=pnl_currency,
         )
+        # Track daily consecutive losses for cooling-off
+        if pnl_currency < 0:
+            self._consec_losses_today += 1
+        else:
+            self._consec_losses_today = 0
         self.closed_trades += 1
 
         # Write to SmartNoteBook
@@ -661,6 +735,26 @@ class BacktestRunner:
     # ==================================================================
     # Helpers.
     # ==================================================================
+    def _grade_risk_multiplier(self, grade: str) -> float:
+        """Return per-grade risk fraction. Defaults from audit:
+        A+=1.5, A=1.0, B=0.5, C=0.0 (no trade).
+        Variant.grade_risk_multipliers can override.
+        """
+        if self.variant.grade_risk_multipliers:
+            d = dict(self.variant.grade_risk_multipliers)
+            return float(d.get(grade, 0.0))
+        defaults = {"A+": 1.5, "A": 1.0, "B": 0.5, "C": 0.0}
+        return defaults.get(grade, 0.0)
+
+    @staticmethod
+    def _derive_grade_from_confidence(c: float) -> str:
+        """Derive a v1-compatible grade from raw confidence.
+        Calibrated thresholds (audit Q1): A+ 0.65, A 0.55, B 0.45."""
+        if c >= 0.65: return "A+"
+        if c >= 0.55: return "A"
+        if c >= 0.45: return "B"
+        return "C"
+
     def _compute_atr(self, history: list, n: int = 14) -> float:
         """True-range based ATR over the last n bars in `history`.
         Returns 0.0 if insufficient data. Uses pip units for clarity.
@@ -698,6 +792,10 @@ class BacktestRunner:
         self.rej_variant = 0
         self.rej_atr_surge = 0
         self.rej_regime = 0
+        self.rej_spread = 0
+        self.rej_daily_cap = 0
+        self.rej_cooling_off = 0
+        self.rej_grade = 0
         self.halt_count = 0
         self.entries_filled = 0
         self.rej_session = 0

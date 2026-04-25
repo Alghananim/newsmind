@@ -60,7 +60,7 @@ class BacktestConfig:
     # tier-1 event. Open positions are managed by the monitor (which
     # may force-close before news per its own rules).
     news_blackout_minutes_pre: int = 15
-    news_blackout_minutes_post: int = 15
+    news_blackout_minutes_post: int = 60   # extended per audit (NFP/FOMC durations)
 
     # ---- Costs ----------------------------------------------------
     # OANDA Practice has zero commission. OANDA Live spread-only:
