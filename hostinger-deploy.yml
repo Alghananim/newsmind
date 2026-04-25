@@ -82,14 +82,11 @@ services:
       - |
         set -e
         apt-get update -qq && apt-get install -y --no-install-recommends git ca-certificates >/dev/null 2>&1
-        if [ ! -d /app/.git ]; then
-          echo "[bootstrap] cloning newsmind..."
-          git clone --depth 1 https://github.com/Alghananim/newsmind.git /tmp/newsmind
-          cp -a /tmp/newsmind/. /app/
-          rm -rf /tmp/newsmind
-        else
-          echo "[bootstrap] pulling latest..."
-          cd /app && git pull --ff-only || echo "[bootstrap] pull failed, continuing with cached source"
-        fi
-        echo "[bootstrap] installing python deps..."
-     
+        # Always do a clean clone of latest main into a temp dir, then
+        # rsync the contents over /app. This guarantees we run the
+        # latest code on every restart, even if the /app volume held
+        # an older shallow clone from a previous boot.
+        echo "[bootstrap] fetching latest main from GitHub..."
+        rm -rf /tmp/newsmind_fresh
+        git clone --depth 1 https://github.com/Alghananim/newsmind.git /tmp/newsmind_fresh
+        # Preserve the .
