@@ -308,7 +308,7 @@ def _detect_triangles_wedges(swing_h: list, swing_l: list,
                 name="ascending_triangle", direction="bullish",
                 confidence=min(1.0, 0.45 + 0.3 * lo_r2),
                 target=float(flat_price + depth),
-                invalidation=float(flat_price - 0.5 * atr);
+                invalidation=float(flat_price - 0.5 * atr),
                 anchor_ts=anchor_ts,
                 detail=(
                     f"Ascending triangle: flat resistance ~{flat_price:.5f}, "
