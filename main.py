@@ -283,4 +283,44 @@ def main() -> int:
                         current_price=last_price, bar_reading=bar, now_utc=now,
                     )
                     if mr is not None and (mr.actions_applied or mr.trades_recorded
-   
+                                            or mr.positions_seen):
+                        mon_part = f" | mon[{mr.summary()}]"
+            except Exception as e:
+                mon_part = f" | mon_err[{type(e).__name__}]"
+
+            cost_part = ""
+            if engine._llm_cost is not None:
+                cost_part = f" | {engine._llm_cost.one_line_summary()}"
+            _log(f"items={len(items):>3} events={len(events):>2} | "
+                 f"{line}{mon_part}{cost_part}")
+
+            cycle += 1
+
+            if cycle % checkpoint_every == 0:
+                if nm is not None:
+                    try:
+                        nm.save_state()
+                    except Exception:
+                        pass
+
+            if cycle % briefing_every == 0 and engine.snb is not None:
+                _log("--- SmartNoteBook briefing (periodic) ---")
+                for line in engine.briefing_console_string().splitlines():
+                    _log(f"  {line}")
+
+            for _ in range(interval):
+                if stop_flag["stop"]:
+                    break
+                time.sleep(1)
+    finally:
+        if nm is not None:
+            try:
+                nm.close()
+            except Exception:
+                pass
+        _log("State saved. Goodbye.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
