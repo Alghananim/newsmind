@@ -409,6 +409,40 @@ VARIANTS: dict[str, VariantFilter] = {
         min_rr=1.8,
         min_confidence=0.5,
     ),
+
+    # ------------------------------------------------------------------
+    # Round-5: push EUR/USD trend riding further (trail_r25 was +44.93%)
+    # ------------------------------------------------------------------
+    "trail_r3": VariantFilter(
+        name="trail_r3",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=3.0,
+        risk_pct_override=1.0,
+    ),
+    "trail_r35": VariantFilter(
+        name="trail_r35",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=3.5,
+        risk_pct_override=1.0,
+    ),
+    "trail_r4": VariantFilter(
+        name="trail_r4",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=4.0,
+        risk_pct_override=1.0,
+    ),
+    "trail_r25_risk15": VariantFilter(
+        name="trail_r25_risk15",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=2.5,
+        risk_pct_override=1.5,
+    ),
+    "trail_r3_risk15": VariantFilter(
+        name="trail_r3_risk15",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=3.0,
+        risk_pct_override=1.5,
+    ),
 }
 
 

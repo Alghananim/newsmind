@@ -42,21 +42,16 @@ jobs:
       fail-fast: false
       matrix:
         variant:
-          # Anchor: round-3 champion
-          - jp_champion_tight_trail
-          # Round-4: scale the champion
-          - tight_trail_risk15
-          - tight_trail_risk2
-          - tight_trail_no_halt
-          - tight_trail_risk15_no_halt
-          - trail_r2
-          - trail_r25
-          - tight_trail_budget48
-          - production_v1
-          - production_v2
-          # Anchors for round-3 best per pair
-          - gb_ultra_risk15
-          - gb_ultra_risk1
+          # Production anchors (locked per-pair best from round 4)
+          - jp_champion_tight_trail   # USD/JPY winner +105%
+          - trail_r25                  # EUR/USD winner +45%
+          - gb_ultra_risk15            # GBP/USD winner +8.6%
+          # Round-5: push EUR/USD further
+          - trail_r3
+          - trail_r35
+          - trail_r4
+          - trail_r25_risk15
+          - trail_r3_risk15
         pair:
           - EUR/USD
           - USD/JPY
