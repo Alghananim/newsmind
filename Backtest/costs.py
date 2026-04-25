@@ -93,6 +93,7 @@ class CostModel:
     stop_slippage_pips: float = 1.0
     fallback_spread_pips: float = 0.5
     commission_per_lot_per_side: float = 0.0
+    target_slippage_pips: float = 0.2   # small slippage on TP (was 0)
 
     # ==================================================================
     # Entry simulation.
@@ -260,25 +261,31 @@ class CostModel:
         and the broker fills the limit at the limit price).
         """
         commission = self._commission(lot)
+        slip = self.target_slippage_pips * self.pair_pip
         if direction == "long":
             if bar_high >= target_price:
+                # Small adverse slippage even on TP (queue ahead, partial)
+                fill_price = target_price - slip
                 return FillResult(
-                    filled=True, fill_price=target_price,
+                    filled=True, fill_price=fill_price,
                     fill_time=fill_time, fill_type="target",
                     requested_price=target_price,
-                    slippage_pips=0.0, spread_paid_pips=0.0,
+                    slippage_pips=-self.target_slippage_pips,
+                    spread_paid_pips=0.0,
                     commission_currency=commission,
-                    note="target hit at limit price",
+                    note="target hit with realistic queue slippage",
                 )
         else:
             if bar_low <= target_price:
+                fill_price = target_price + slip
                 return FillResult(
-                    filled=True, fill_price=target_price,
+                    filled=True, fill_price=fill_price,
                     fill_time=fill_time, fill_type="target",
                     requested_price=target_price,
-                    slippage_pips=0.0, spread_paid_pips=0.0,
+                    slippage_pips=-self.target_slippage_pips,
+                    spread_paid_pips=0.0,
                     commission_currency=commission,
-                    note="target hit at limit price",
+                    note="target hit with realistic queue slippage",
                 )
         return FillResult(
             filled=False, fill_price=target_price, fill_time=fill_time,

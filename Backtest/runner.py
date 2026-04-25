@@ -53,6 +53,7 @@ from .data import BacktestBar
 from .risk import RiskManager, RiskState, RiskVerdict
 from .session import BacktestSession
 from .variants import VariantFilter, get_variant
+from .regime import RegimeDetector
 
 
 # ----------------------------------------------------------------------
@@ -169,6 +170,7 @@ class BacktestRunner:
         self.cm = chartmind
         self.snb = snb
         self.variant = variant_filter or VariantFilter()
+        self.regime_detector = RegimeDetector(pair_pip=config.pair_pip)
 
         self.session = session or BacktestSession(
             tz_name=config.session_tz,
@@ -184,6 +186,7 @@ class BacktestRunner:
             units_per_lot=config.units_per_lot,
             entry_slippage_pips=config.entry_slippage_pips,
             stop_slippage_pips=config.stop_slippage_pips,
+            target_slippage_pips=config.target_slippage_pips,
             fallback_spread_pips=config.fallback_spread_pips,
             commission_per_lot_per_side=config.commission_per_lot_per_side,
         )
@@ -204,6 +207,8 @@ class BacktestRunner:
         # Internal state
         self._pending: Optional[_PendingSignal] = None
         self._halt_resume_date = None  # set when DD halt fires in pause-mode
+        self._last_regime: Optional[str] = None
+        self._last_adx: float = 0.0
         self._open: Optional[_OpenPosition] = None
         self._risk_state: Optional[RiskState] = None
 
@@ -487,6 +492,23 @@ class BacktestRunner:
                 self.rej_atr_surge += 1
                 return
 
+        # Regime filter (variant-driven). Classify the current bar's
+        # market regime and reject if not in the allow-list.
+        # The walk-forward audit showed pattern detector collapses in
+        # RANGING/QUIET regimes — production should restrict to TREND.
+        if self.variant.allowed_regimes or self.variant.min_adx > 0:
+            reading = self.regime_detector.classify(self._history)
+            self._last_regime = reading.regime
+            self._last_adx = reading.adx
+            if (self.variant.allowed_regimes
+                    and reading.regime not in self.variant.allowed_regimes):
+                self.rej_regime += 1
+                return
+            if (self.variant.min_adx > 0
+                    and reading.adx < self.variant.min_adx):
+                self.rej_regime += 1
+                return
+
         # Build the DataFrame from rolling history
         try:
             import pandas as pd
@@ -675,6 +697,7 @@ class BacktestRunner:
         self.signals_generated = 0
         self.rej_variant = 0
         self.rej_atr_surge = 0
+        self.rej_regime = 0
         self.halt_count = 0
         self.entries_filled = 0
         self.rej_session = 0

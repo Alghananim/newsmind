@@ -117,6 +117,8 @@ class HistoricalCalendar:
             )
         self._ny = ZoneInfo("America/New_York")
         self._cet = ZoneInfo("Europe/Berlin")          # ECB is in Frankfurt
+        self._jst = ZoneInfo("Asia/Tokyo")             # BoJ is in Tokyo
+        self._london = ZoneInfo("Europe/London")       # BoE is in London
         self._start = start or date(2024, 1, 1)
         self._end = end or date(2027, 1, 1)
         self._pre_t1 = pre_minutes_t1
@@ -190,6 +192,9 @@ class HistoricalCalendar:
         events.extend(self._gen_gdp_us())
         events.extend(self._fomc_dates())
         events.extend(self._ecb_dates())
+        events.extend(self._boj_dates())
+        events.extend(self._uk_cpi_dates())
+        events.extend(self._boe_dates())
         events.sort(key=lambda e: e.when_utc)
         return events
 
@@ -351,6 +356,91 @@ class HistoricalCalendar:
                 name="ECB Rate Decision", when_utc=ts_utc,
                 tier="T1", source="scheduled",
             ))
+        return out
+
+    def _boj_dates(self) -> list[CalendarEvent]:
+        """Bank of Japan rate decision dates 2024-2026.
+        Statement at ~12:00 JST (03:00 UTC); press conference at 15:30 JST.
+        Critical for USD/JPY — March 2024 BoJ exit from negative rates +
+        intervention episodes drive massive Yen volatility.
+        """
+        dates_jst = [
+            # 2024
+            (2024, 1, 23), (2024, 3, 19), (2024, 4, 26), (2024, 6, 14),
+            (2024, 7, 31), (2024, 9, 20), (2024, 10, 31), (2024, 12, 19),
+            # 2025
+            (2025, 1, 24), (2025, 3, 19), (2025, 5, 1), (2025, 6, 17),
+            (2025, 7, 31), (2025, 9, 19), (2025, 10, 30), (2025, 12, 19),
+            # 2026
+            (2026, 1, 23), (2026, 3, 19), (2026, 4, 28), (2026, 6, 16),
+            (2026, 7, 31), (2026, 9, 18), (2026, 10, 30), (2026, 12, 18),
+        ]
+        out = []
+        for y, m, d in dates_jst:
+            d_obj = date(y, m, d)
+            if not (self._start <= d_obj <= self._end):
+                continue
+            jst_dt = datetime(y, m, d, 12, 0, tzinfo=self._jst)
+            ts_utc = jst_dt.astimezone(timezone.utc)
+            out.append(CalendarEvent(
+                name="BoJ Rate Decision", when_utc=ts_utc,
+                tier="T1", source="scheduled",
+            ))
+        return out
+
+    def _boe_dates(self) -> list[CalendarEvent]:
+        """Bank of England MPC dates 2024-2026.
+        Decision at 12:00 London time (Super Thursday). Critical for GBP/USD.
+        """
+        dates_uk = [
+            # 2024
+            (2024, 2, 1), (2024, 3, 21), (2024, 5, 9), (2024, 6, 20),
+            (2024, 8, 1), (2024, 9, 19), (2024, 11, 7), (2024, 12, 19),
+            # 2025
+            (2025, 2, 6), (2025, 3, 20), (2025, 5, 8), (2025, 6, 19),
+            (2025, 8, 7), (2025, 9, 18), (2025, 11, 6), (2025, 12, 18),
+            # 2026
+            (2026, 2, 5), (2026, 3, 19), (2026, 5, 7), (2026, 6, 18),
+            (2026, 8, 6), (2026, 9, 17), (2026, 11, 5), (2026, 12, 17),
+        ]
+        out = []
+        for y, m, d in dates_uk:
+            d_obj = date(y, m, d)
+            if not (self._start <= d_obj <= self._end):
+                continue
+            uk_dt = datetime(y, m, d, 12, 0, tzinfo=self._london)
+            ts_utc = uk_dt.astimezone(timezone.utc)
+            out.append(CalendarEvent(
+                name="BoE Rate Decision", when_utc=ts_utc,
+                tier="T1", source="scheduled",
+            ))
+        return out
+
+    def _uk_cpi_dates(self) -> list[CalendarEvent]:
+        """UK CPI release dates (rule-based: ~16th of each month at 07:00 UK).
+        Critical for GBP/USD swings around inflation surprises.
+        """
+        out = []
+        cur = date(self._start.year, self._start.month, 1)
+        end = self._end
+        while cur <= end:
+            target = date(cur.year, cur.month, 16)
+            # Adjust to nearest weekday
+            while target.isoweekday() > 5:
+                target = target.replace(day=target.day + 1)
+            if self._start <= target <= self._end:
+                uk_dt = datetime(target.year, target.month, target.day,
+                                 7, 0, tzinfo=self._london)
+                out.append(CalendarEvent(
+                    name="UK CPI Release",
+                    when_utc=uk_dt.astimezone(timezone.utc),
+                    tier="T1", source="rule",
+                ))
+            # next month
+            if cur.month == 12:
+                cur = date(cur.year + 1, 1, 1)
+            else:
+                cur = date(cur.year, cur.month + 1, 1)
         return out
 
     # ----- timezone helper -----

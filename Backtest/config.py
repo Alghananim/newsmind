@@ -72,6 +72,7 @@ class BacktestConfig:
     # orders fill at the limit price (no slippage by definition).
     entry_slippage_pips: float = 0.5
     stop_slippage_pips: float = 1.0
+    target_slippage_pips: float = 0.2   # realistic queue/partial slippage on TP
     # Sometimes spread is unavailable in the data; fall back to a
     # realistic average for EUR/USD.
     fallback_spread_pips: float = 0.5

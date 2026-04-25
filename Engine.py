@@ -238,10 +238,13 @@ class EngineConfig:
 
     # Brain-grade thresholds (confidence -> letter grade). Tunable so
     # different brains can use different scales without code changes.
-    grade_a_plus_threshold: float = 0.80
-    grade_a_threshold: float = 0.65
-    grade_b_threshold: float = 0.50
-    grade_c_threshold: float = 0.35
+    # Calibrated to actual ChartMind output distribution observed in the
+    # 2-year OANDA backtest: 100% of synthetic trades fell <0.65 confidence,
+    # making A+ and A unreachable. Lowered to spread the distribution.
+    grade_a_plus_threshold: float = 0.65   # was 0.80 — too high in practice
+    grade_a_threshold: float = 0.55        # was 0.65
+    grade_b_threshold: float = 0.45        # was 0.50
+    grade_c_threshold: float = 0.30        # was 0.35
 
     # Memory-injection language for the LLM wrappers ("en" | "ar").
     injection_language: str = "en"

@@ -435,11 +435,13 @@ class BacktestAnalyzer:
 
     @staticmethod
     def _grade_bucket(t) -> str:
-        """Map plan_confidence to A+/A/B/C grade. Matches Engine defaults."""
+        """Map plan_confidence to A+/A/B/C grade.
+        Calibrated to actual ChartMind output distribution.
+        """
         c = float(getattr(t, "plan_confidence", 0.0) or 0.0)
-        if c >= 0.80: return "A+"
-        if c >= 0.65: return "A"
-        if c >= 0.50: return "B"
+        if c >= 0.65: return "A+"
+        if c >= 0.55: return "A"
+        if c >= 0.45: return "B"
         return "C"
 
     def _sample_equity_daily(self) -> list:

@@ -100,8 +100,22 @@ class VariantFilter:
     # ATR / volatility surge filter. If max(recent_atr) / mean(longer_atr)
     # > atr_surge_threshold, skip new entries this bar. Catches news
     # spikes, BoJ shocks, geopolitical event candles. 0 = disabled.
-    # Recommended: 3.0 (skip when current vol >3x recent average).
+    # Recommended: 1.8 (skip when current vol >1.8x recent average).
     atr_surge_threshold: float = 0.0
+
+    # Regime filter. Empty tuple = trade in any regime (legacy).
+    # Otherwise, only trade when the RegimeDetector classifies the
+    # current bar's regime as one of these labels:
+    #   "TRENDING_UP", "TRENDING_DOWN", "RANGING", "VOLATILE", "QUIET"
+    # The walk-forward audit showed our pattern strategy collapses in
+    # RANGING/QUIET regimes; default production should be ("TRENDING_UP",
+    # "TRENDING_DOWN") to limit trading to genuinely-trending markets.
+    allowed_regimes: tuple = ()
+
+    # Minimum ADX threshold (Wilder). 0 = no ADX gate.
+    # 25 = canonical strong trend; 20 = mild trend.
+    # Used INSIDE allowed_regimes filter as an extra strength check.
+    min_adx: float = 0.0
 
     # ===============================================================
     # The decision function.
@@ -489,6 +503,70 @@ VARIANTS: dict[str, VariantFilter] = {
         risk_pct_override=1.5,
         halt_pause_days=7,
         atr_surge_threshold=3.0,
+    ),
+
+    # ------------------------------------------------------------------
+    # Round-7: REGIME-AWARE production candidates (the missing piece).
+    # Walk-forward audit showed our trend-following pattern detector
+    # crushes Q1 2024 (USD/JPY uptrend) but bleeds Q3-Q7 2025 (chop
+    # after BoJ intervention). Fix: only trade in TRENDING regimes,
+    # confirmed by ADX >= 25.
+    # ------------------------------------------------------------------
+    "regime_eur": VariantFilter(
+        name="regime_eur",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=2.5,
+        risk_pct_override=1.0,
+        halt_pause_days=7,
+        atr_surge_threshold=1.8,
+        allowed_regimes=("TRENDING_UP", "TRENDING_DOWN"),
+        min_adx=25.0,
+    ),
+    "regime_jpy": VariantFilter(
+        name="regime_jpy",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=1.5,
+        risk_pct_override=1.0,
+        halt_pause_days=7,
+        atr_surge_threshold=1.8,
+        allowed_regimes=("TRENDING_UP", "TRENDING_DOWN"),
+        min_adx=25.0,
+    ),
+    "regime_gbp": VariantFilter(
+        name="regime_gbp",
+        allowed_hours_utc=(8, 9, 10, 11, 12, 13, 14, 15),
+        allowed_setups=("signal_entry_continuation", "pattern_double_bottom"),
+        min_confidence=0.45,    # lowered to match recalibrated grades
+        min_rr=2.0,
+        risk_pct_override=1.0,
+        halt_pause_days=7,
+        atr_surge_threshold=1.8,
+        allowed_regimes=("TRENDING_UP", "TRENDING_DOWN"),
+        min_adx=20.0,           # GBP/USD ranges more — milder ADX gate
+    ),
+
+    # Conservative variant: trend regime + ADX strict + ATR filter
+    "regime_strict": VariantFilter(
+        name="regime_strict",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=2.0,
+        risk_pct_override=1.0,
+        halt_pause_days=7,
+        atr_surge_threshold=1.5,
+        allowed_regimes=("TRENDING_UP", "TRENDING_DOWN"),
+        min_adx=30.0,
+    ),
+
+    # Aggressive: regime filter only, no halt limit
+    "regime_aggressive": VariantFilter(
+        name="regime_aggressive",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=1.5,
+        risk_pct_override=1.5,
+        halt_pause_days=14,
+        atr_surge_threshold=2.0,
+        allowed_regimes=("TRENDING_UP", "TRENDING_DOWN"),
+        min_adx=20.0,
     ),
 }
 
