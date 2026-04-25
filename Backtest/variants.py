@@ -332,6 +332,83 @@ VARIANTS: dict[str, VariantFilter] = {
         min_rr=2.0,
         risk_pct_override=1.5,
     ),
+
+    # ------------------------------------------------------------------
+    # Round-4: scale jp_champion_tight_trail further (it just did +105%
+    # on USD/JPY, +18% EUR/USD, halted at 15.5% DD).
+    # ------------------------------------------------------------------
+
+    # Same recipe, push risk
+    "tight_trail_risk15": VariantFilter(
+        name="tight_trail_risk15",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=1.5,
+        risk_pct_override=1.5,
+    ),
+    "tight_trail_risk2": VariantFilter(
+        name="tight_trail_risk2",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=1.5,
+        risk_pct_override=2.0,
+    ),
+
+    # Same recipe, halt off (full 2-year curve, see compounding)
+    "tight_trail_no_halt": VariantFilter(
+        name="tight_trail_no_halt",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=1.5,
+        risk_pct_override=1.0,
+        disable_max_dd_halt=True,
+    ),
+    "tight_trail_risk15_no_halt": VariantFilter(
+        name="tight_trail_risk15_no_halt",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=1.5,
+        risk_pct_override=1.5,
+        disable_max_dd_halt=True,
+    ),
+
+    # Variations on trail R
+    "trail_r2": VariantFilter(
+        name="trail_r2",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=2.0,
+        risk_pct_override=1.0,
+    ),
+    "trail_r25": VariantFilter(
+        name="trail_r25",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=2.5,
+        risk_pct_override=1.0,
+    ),
+
+    # Even longer time budget (full session)
+    "tight_trail_budget48": VariantFilter(
+        name="tight_trail_budget48",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=1.5,
+        risk_pct_override=1.0,
+        time_budget_override=48,
+    ),
+
+    # The "production" candidate: best discovered config with min_rr
+    # gate to drop low-quality entries (filters out weak setups).
+    "production_v1": VariantFilter(
+        name="production_v1",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=1.5,
+        risk_pct_override=1.0,
+        min_rr=1.8,
+        min_confidence=0.5,
+    ),
+    "production_v2": VariantFilter(
+        name="production_v2",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=1.5,
+        risk_pct_override=1.5,
+        min_rr=1.8,
+        min_confidence=0.5,
+    ),
 }
 
 
