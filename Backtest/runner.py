@@ -52,6 +52,7 @@ from .costs import CostModel, FillResult
 from .data import BacktestBar
 from .risk import RiskManager, RiskState, RiskVerdict
 from .session import BacktestSession
+from .variants import VariantFilter, get_variant
 
 
 # ----------------------------------------------------------------------
@@ -160,10 +161,12 @@ class BacktestRunner:
                  session: Optional[BacktestSession] = None,
                  calendar: Optional[HistoricalCalendar] = None,
                  cost_model: Optional[CostModel] = None,
-                 risk_manager: Optional[RiskManager] = None):
+                 risk_manager: Optional[RiskManager] = None,
+                 variant_filter: Optional[VariantFilter] = None):
         self.config = config
         self.cm = chartmind
         self.snb = snb
+        self.variant = variant_filter or VariantFilter()
 
         self.session = session or BacktestSession(
             tz_name=config.session_tz,
@@ -248,8 +251,9 @@ class BacktestRunner:
                     state=self._risk_state, new_today=bar.time.date(),
                 )
 
-            # Halt the entire backtest if max-DD kill switch fired.
-            if self._risk_state.halted_permanent:
+            # Halt the entire backtest if max-DD kill switch fired,
+            # UNLESS the variant disabled the halt for diagnosis.
+            if self._risk_state.halted_permanent and not self.variant.disable_max_dd_halt:
                 break
 
             # ----- Phase A: fill any pending signal from previous bar
@@ -445,6 +449,18 @@ class BacktestRunner:
         if plan is None or not getattr(plan, "is_actionable", False):
             return
 
+        # Variant filter: reject the plan based on hour / setup /
+        # confidence / R:R thresholds. Counted as `rej_variant`.
+        accept, reason = self.variant.accept(
+            bar_time=bar.time,
+            setup_type=getattr(plan, "setup_type", "unknown"),
+            confidence=float(getattr(plan, "confidence", 0.0)),
+            rr_ratio=float(getattr(plan, "rr_ratio", 0.0)),
+        )
+        if not accept:
+            self.rej_variant += 1
+            return
+
         self.signals_generated += 1
 
         # Risk check + sizing
@@ -578,6 +594,7 @@ class BacktestRunner:
     def _reset_counters(self) -> None:
         self.bars_seen = 0
         self.signals_generated = 0
+        self.rej_variant = 0
         self.entries_filled = 0
         self.rej_session = 0
         self.rej_calendar = 0

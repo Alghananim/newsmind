@@ -1,0 +1,129 @@
+# Variant matrix backtest — runs N variants × 3 pairs in parallel.
+#
+# Each (variant, pair) is its own job, gets its own runner, fetches
+# its own OANDA M15 cache, and writes a small per-job JSON. A final
+# aggregator job collects them and produces a leaderboard.
+#
+# Trigger via:
+#   * workflow_dispatch (manual; choose mode + days)
+#   * push to main on Backtest/variants.py or scripts/run_variant.py
+#
+# Estimated wall time: ~3-5 min (all jobs run in parallel).
+
+name: Variants
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Backtest/variants.py'
+      - 'scripts/run_variant.py'
+      - 'scripts/aggregate_variants.py'
+      - '.github/workflows/variants.yml'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'oanda (real) or synthetic'
+        required: false
+        default: 'oanda'
+        type: choice
+        options: [oanda, synthetic]
+      days:
+        description: 'Backtest window in days'
+        required: false
+        default: '730'
+
+jobs:
+  matrix:
+    name: ${{ matrix.variant }} on ${{ matrix.pair }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        variant:
+          - baseline
+          - kill_asia
+          - london_only
+          - london_overlap
+          - drop_double_top
+          - continuation_focus
+          - prime
+          - prime_no_halt
+          - ultra_quality
+        pair:
+          - EUR/USD
+          - USD/JPY
+          - GBP/USD
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run variant
+        env:
+          VARIANT_NAME: ${{ matrix.variant }}
+          PAIR: ${{ matrix.pair }}
+          DAYS: ${{ inputs.days || '730' }}
+          USE_SYNTHETIC: ${{ inputs.mode == 'synthetic' && 'true' || '' }}
+          OANDA_API_TOKEN: ${{ secrets.OANDA_API_TOKEN }}
+          OANDA_ACCOUNT_ID: ${{ secrets.OANDA_ACCOUNT_ID }}
+          OANDA_ENVIRONMENT: ${{ secrets.OANDA_ENVIRONMENT || 'practice' }}
+          OUTPUT_DIR: ${{ github.workspace }}/variant_output
+        run: |
+          mkdir -p $OUTPUT_DIR
+          python scripts/run_variant.py
+
+      - name: Upload per-job result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          # Sanitise the slash in pair name for the artifact filename.
+          name: variant-${{ matrix.variant }}-${{ matrix.pair == 'EUR/USD' && 'eur_usd' || matrix.pair == 'USD/JPY' && 'usd_jpy' || 'gbp_usd' }}
+          path: variant_output/
+          retention-days: 30
+
+  aggregate:
+    name: Aggregate leaderboard
+    needs: matrix
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Download all per-job artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: variant_output/
+          pattern: variant-*
+          merge-multiple: true
+
+      - name: Aggregate + leaderboard
+        env:
+          VARIANT_DIR: ${{ github.workspace }}/variant_output
+        run: |
+          ls -la variant_output/ || true
+          python scripts/aggregate_variants.py
+
+      - name: Upload combined leaderboard artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: variant-leaderboard
+          path: variant_output/
+          retention-days: 90
