@@ -1,0 +1,41 @@
+# Secrets — must never be committed.
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Python build artefacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual envs
+venv/
+.venv/
+env/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# State (runtime, machine-local)
+NewsMind/state/
+state/
+*.jsonl
+*.seq
+
+# Coverage / test artefacts
+.coverage
+.pytest_cache/
+htmlcov/
+.tox/
