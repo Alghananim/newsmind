@@ -130,9 +130,20 @@ def _run_backtest_one_shot() -> int:
 
 
 def main() -> int:
-    rb_val = os.environ.get("RUN_BACKTEST", "")
-    _log(f"BOOT: RUN_BACKTEST env = {rb_val!r}")
-    if rb_val.lower() in ("1", "true", "yes"):
+    # Auto-run the backtest on first boot (when no results.json exists)
+    # OR when RUN_BACKTEST=true is set explicitly. Results live in the
+    # persistent state volume so subsequent boots skip straight to
+    # live mode unless RUN_BACKTEST forces a re-run.
+    rb_val = os.environ.get("RUN_BACKTEST", "").lower()
+    state_dir = os.environ.get("STATE_DIR", "/app/NewsMind/state")
+    results_path = Path(state_dir) / "backtest" / "results.json"
+    _log(f"BOOT: RUN_BACKTEST={rb_val!r}, "
+         f"results_exists={results_path.exists()}")
+
+    force_run = rb_val in ("1", "true", "yes")
+    auto_run = not results_path.exists()
+    if force_run or auto_run:
+        _log(f"BOOT: triggering backtest (force={force_run}, auto={auto_run})")
         return _run_backtest_one_shot()
 
     from Engine import Engine, EngineConfig
@@ -297,6 +308,13 @@ def main() -> int:
                  f"{line}{mon_part}{cost_part}")
 
             cycle += 1
+
+            if cycle % checkpoint_every == 0:
+                if nm is not None:
+                    try:
+                        nm.save_state()
+                    except Exception:
+                        pass
 
             if cycle % checkpoint_every == 0:
                 if nm is not None:
