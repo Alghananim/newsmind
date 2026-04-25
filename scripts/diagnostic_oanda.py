@@ -22,7 +22,7 @@ sys.path.insert(0, str(ROOT))
 
 from Backtest import (BacktestConfig, BacktestData, BacktestRunner,
                       BacktestAnalyzer)
-from Backtest.variants import VariantFilter
+from Backtest.variants import VariantFilter, get_variant
 from SmartNoteBook import SmartNoteBook, SmartNoteBookConfig
 from ChartMind import ChartMind
 
