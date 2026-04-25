@@ -130,7 +130,9 @@ def _run_backtest_one_shot() -> int:
 
 
 def main() -> int:
-    if os.environ.get("RUN_BACKTEST", "").lower() in ("1", "true", "yes"):
+    rb_val = os.environ.get("RUN_BACKTEST", "")
+    _log(f"BOOT: RUN_BACKTEST env = {rb_val!r}")
+    if rb_val.lower() in ("1", "true", "yes"):
         return _run_backtest_one_shot()
 
     from Engine import Engine, EngineConfig
@@ -318,9 +320,4 @@ def main() -> int:
                 nm.close()
             except Exception:
                 pass
-        _log("State saved. Goodbye.")
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+        _log("State saved. Goodb
