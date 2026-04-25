@@ -42,23 +42,27 @@ jobs:
       fail-fast: false
       matrix:
         variant:
-          # Round 1 baseline & filters (kept for comparison)
+          # Round-1 anchors for sanity comparison
           - baseline
           - kill_asia
-          - london_only
           - ultra_quality
-          # Round 2: trailing-stop + per-pair tuning + risk scaling
-          - eu_pro
+          # Round-2 winner anchors
           - eu_pro_risk1
-          - eu_pro_risk15
-          - jp_pro
-          - jp_pro_risk1
           - jp_pro_risk15
-          - gb_pro
-          - gb_pro_risk1
-          # Diagnostic: full-window halt-disabled
-          - kill_asia_no_halt
-          - london_only_no_halt
+          # Round-3: USD/JPY scale-up (the champion)
+          - jp_champion_risk15
+          - jp_champion_risk2
+          - jp_champion_no_halt
+          - jp_champion_loose_trail
+          - jp_champion_tight_trail
+          - jp_champion_short_budget
+          - jp_champion_long_budget
+          # Round-3: EUR/USD push
+          - eu_kill_asia_trail_risk075
+          - eu_kill_asia_no_halt
+          # Round-3: GBP/USD scale
+          - gb_ultra_risk1
+          - gb_ultra_risk15
         pair:
           - EUR/USD
           - USD/JPY

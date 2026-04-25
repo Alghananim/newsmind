@@ -251,6 +251,87 @@ VARIANTS: dict[str, VariantFilter] = {
         allowed_hours_utc=(8, 9, 10, 11),
         disable_max_dd_halt=True,
     ),
+
+    # ------------------------------------------------------------------
+    # Round-3: USD/JPY scale-up (the +51.72% champion variant). Test
+    # how far it can go with higher risk and halt off.
+    # ------------------------------------------------------------------
+    "jp_champion_risk15": VariantFilter(
+        name="jp_champion_risk15",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=1.0,
+        risk_pct_override=1.5,
+    ),
+    "jp_champion_risk2": VariantFilter(
+        name="jp_champion_risk2",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=1.0,
+        risk_pct_override=2.0,
+    ),
+    "jp_champion_no_halt": VariantFilter(
+        name="jp_champion_no_halt",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=1.0,
+        risk_pct_override=1.0,
+        disable_max_dd_halt=True,
+    ),
+    "jp_champion_loose_trail": VariantFilter(
+        name="jp_champion_loose_trail",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=0.5,             # earlier trail = catch more wins
+        risk_pct_override=1.0,
+    ),
+    "jp_champion_tight_trail": VariantFilter(
+        name="jp_champion_tight_trail",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=1.5,             # later trail = breathe more
+        risk_pct_override=1.0,
+    ),
+    "jp_champion_short_budget": VariantFilter(
+        name="jp_champion_short_budget",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=1.0,
+        risk_pct_override=1.0,
+        time_budget_override=8,             # 2-hour cap
+    ),
+    "jp_champion_long_budget": VariantFilter(
+        name="jp_champion_long_budget",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=1.0,
+        risk_pct_override=1.0,
+        time_budget_override=48,            # 12-hour cap
+    ),
+
+    # EUR/USD: try +trail with risk 0.75 (between 0.5 and 1.0).
+    "eu_kill_asia_trail_risk075": VariantFilter(
+        name="eu_kill_asia_trail_risk075",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=1.0,
+        risk_pct_override=0.75,
+    ),
+    "eu_kill_asia_no_halt": VariantFilter(
+        name="eu_kill_asia_no_halt",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        disable_max_dd_halt=True,
+    ),
+
+    # GBP/USD: lock ultra_quality and test risk scaling without halt.
+    "gb_ultra_risk1": VariantFilter(
+        name="gb_ultra_risk1",
+        allowed_hours_utc=(8, 9, 10, 11, 12, 13, 14, 15),
+        allowed_setups=("signal_entry_continuation", "pattern_double_bottom"),
+        min_confidence=0.6,
+        min_rr=2.0,
+        risk_pct_override=1.0,
+    ),
+    "gb_ultra_risk15": VariantFilter(
+        name="gb_ultra_risk15",
+        allowed_hours_utc=(8, 9, 10, 11, 12, 13, 14, 15),
+        allowed_setups=("signal_entry_continuation", "pattern_double_bottom"),
+        min_confidence=0.6,
+        min_rr=2.0,
+        risk_pct_override=1.5,
+    ),
 }
 
 
