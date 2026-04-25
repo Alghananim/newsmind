@@ -63,9 +63,6 @@ services:
       - newsmind_state:/app/NewsMind/state
       - newsmind_repo:/app
 
-    networks:
-      - newsmind_net
-
     logging:
       driver: json-file
       options:
@@ -88,4 +85,4 @@ services:
         rm -rf /tmp/newsmind_fresh
         git clone --depth 1 https://github.com/Alghananim/newsmind.git /tmp/newsmind_fresh
         # Preserve the .git dir for diagnostics + state-only paths
-     
+        # (NewsMind/state lives on a sepa
