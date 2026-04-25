@@ -1,0 +1,41 @@
+name: Diagnostic
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/diagnostic_oanda.py'
+      - '.github/workflows/diagnostic.yml'
+
+jobs:
+  diag:
+    name: Diagnostic on ${{ matrix.pair }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        pair: ['EUR/USD', 'USD/JPY', 'GBP/USD']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11', cache: 'pip' }
+      - name: Install
+        run: pip install -r requirements.txt
+      - name: Run diagnostic
+        env:
+          PAIR: ${{ matrix.pair }}
+          OANDA_API_TOKEN: ${{ secrets.OANDA_API_TOKEN }}
+          OANDA_ACCOUNT_ID: ${{ secrets.OANDA_ACCOUNT_ID }}
+          OANDA_ENVIRONMENT: ${{ secrets.OANDA_ENVIRONMENT || 'practice' }}
+          OUTPUT_DIR: ${{ github.workspace }}/diag_output
+        run: |
+          mkdir -p $OUTPUT_DIR
+          python scripts/diagnostic_oanda.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: diag-${{ matrix.pair == 'EUR/USD' && 'eur_usd' || matrix.pair == 'USD/JPY' && 'usd_jpy' || 'gbp_usd' }}
+          path: diag_output/diagnostic_*.json
+          retention-days: 30
