@@ -263,6 +263,16 @@ class EngineConfig:
     llm_grade_on_close: bool = True    # run grader after record_close
     llm_gate_review: bool = True       # run senior-reviewer over gate pass
 
+    # ---- Production variant filter (per-pair tuning) ----------
+    # Name from Backtest.variants.VARIANTS. Applied after
+    # ChartMind produces an actionable plan, before pre-mortem.
+    # Recommended per-pair production config (real-OANDA-tuned):
+    #   EUR/USD -> trail_r25_risk15  (+61.46% over 2y)
+    #   USD/JPY -> jp_champion_tight_trail  (+105.43%)
+    #   GBP/USD -> gb_ultra_risk15  (+8.63%, no halt)
+    # Empty string = no filter (live as-is).
+    variant_filter_name: str = ""
+
 
 # ----------------------------------------------------------------------
 # Engine output.
@@ -333,6 +343,13 @@ class Engine:
                  ):
         self.config = config or EngineConfig()
         Path(self.config.state_dir).mkdir(parents=True, exist_ok=True)
+
+        # ---- Variant filter for per-pair production config ----
+        try:
+            from Backtest.variants import get_variant
+            self.variant = get_variant(self.config.variant_filter_name or "baseline")
+        except Exception:
+            self.variant = None
 
         # ---- ChartMind ---------------------------------------------
         self.cm = None
@@ -585,6 +602,31 @@ class Engine:
                 chart_analysis = self.cm.analyze(bar)
             except (TypeError, AttributeError, ValueError):
                 chart_analysis = None
+
+        # ---- 5b. Variant filter (per-pair production config) ------
+        # Drops signals that fail the time/setup/confidence/RR gates
+        # learned from the OANDA backtest matrix. If the filter rejects,
+        # we mark chart_analysis as not actionable so the rest of the
+        # pipeline (gate, broker) skips this cycle cleanly.
+        if (chart_analysis is not None
+                and self.variant is not None
+                and getattr(chart_analysis, "actionable", False)
+                and getattr(chart_analysis, "plan", None) is not None
+                and bar is not None):
+            plan = chart_analysis.plan
+            bar_time = getattr(bar, "time", None) or now
+            accept, reason = self.variant.accept(
+                bar_time=bar_time,
+                setup_type=getattr(plan, "setup_type", "unknown"),
+                confidence=float(getattr(plan, "confidence", 0.0)),
+                rr_ratio=float(getattr(plan, "rr_ratio", 0.0)),
+            )
+            if not accept:
+                # Mark as non-actionable; gate path will skip.
+                try:
+                    chart_analysis.actionable = False
+                except Exception:
+                    pass
 
         # Splice market + news factors into chart analysis, as the
         # legacy Engine did, so confluence_factors / conflicts /

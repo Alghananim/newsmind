@@ -35,7 +35,14 @@ services:
       - POLL_INTERVAL_SEC=60
       - CHECKPOINT_EVERY_CYCLES=5
       - BRIEFING_EVERY_CYCLES=60
-      - PAIR=EUR/USD
+      - PAIR=${PAIR:-EUR/USD}
+      # ---- Production variant (per-pair OANDA-tuned) -----------
+      # Defaults below are auto-applied per pair in main.py:
+      #   EUR/USD -> trail_r25_risk15  (+61.46% / 2y, PF 1.62)
+      #   USD/JPY -> jp_champion_tight_trail  (+105.43% / 2y)
+      #   GBP/USD -> gb_ultra_risk15  (+8.63% / 2y, no halt)
+      # Set VARIANT_FILTER explicitly to override.
+      - VARIANT_FILTER=${VARIANT_FILTER:-}
       - STATE_DIR=/app/NewsMind/state
       - PYTHONUNBUFFERED=1
       - PYTHONPATH=/app

@@ -166,6 +166,18 @@ def main() -> int:
             and bool(os.environ.get("OANDA_ACCOUNT_ID")))
     )
 
+    # Per-pair production-tuned variant filter. Resolution order:
+    #   1. VARIANT_FILTER env var (explicit override, applies to any pair)
+    #   2. PRODUCTION_DEFAULTS dict (real-OANDA-tuned per pair)
+    #   3. "" (no filter — raw ChartMind output)
+    PRODUCTION_DEFAULTS = {
+        "EUR/USD": "trail_r25_risk15",      # +61.46% over 2y, PF 1.62
+        "USD/JPY": "jp_champion_tight_trail",  # +105.43%, PF 1.38
+        "GBP/USD": "gb_ultra_risk15",       # +8.63%, no halt, PF 1.30
+    }
+    variant_name = (os.environ.get("VARIANT_FILTER", "").strip()
+                    or PRODUCTION_DEFAULTS.get(pair, ""))
+
     config = EngineConfig(
         pair=pair,
         state_dir=state_dir,
@@ -174,6 +186,7 @@ def main() -> int:
         llm_model=os.environ.get("LLM_MODEL", "gpt-5"),
         enable_oanda=enable_oanda,
         oanda_granularity=os.environ.get("OANDA_GRANULARITY", "M15"),
+        variant_filter_name=variant_name,
     )
     config_dir = ROOT / "NewsMind" / "config"
     engine = Engine(
@@ -195,6 +208,8 @@ def main() -> int:
     _log(f"OANDA enabled: {config.enable_oanda} "
          f"(client={'ON' if engine._oanda_client else 'off'}, "
          f"feed={'ON' if engine._oanda_bar_feed else 'off'})")
+    _log(f"Variant filter: {config.variant_filter_name or '(none)'} "
+         f"[{pair} production default = {PRODUCTION_DEFAULTS.get(pair, 'none')}]")
 
     # ---- OANDA reconciliation at boot ------------------------------
     # If OANDA is on, fetch the authoritative account view and compare
