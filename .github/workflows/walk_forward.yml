@@ -21,26 +21,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # ChartMindV2 candidates (rebuilt from scratch)
-          - variant: v2_balanced_eur
+          # PRODUCTION CANDIDATES (audit-driven, all 12 commandments)
+          - variant: production_safe
             pair: EUR/USD
-          - variant: v2_balanced_jpy
+          - variant: production_safe
             pair: USD/JPY
-          - variant: v2_balanced_gbp
-            pair: GBP/USD
-          - variant: v2_strict
+          - variant: production_strict
             pair: EUR/USD
-          - variant: v2_strict
+          - variant: production_strict
             pair: USD/JPY
-          - variant: v2_strict
-            pair: GBP/USD
-          # Anchors: best v1 variants for direct comparison
-          - variant: regime_strict
+          # Anchor: kill_asia (the proven simple winner)
+          - variant: kill_asia
             pair: EUR/USD
-          - variant: regime_strict
+          - variant: kill_asia
             pair: USD/JPY
-          - variant: regime_strict
-            pair: GBP/USD
 
     steps:
       - uses: actions/checkout@v4
