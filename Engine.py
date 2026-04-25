@@ -185,6 +185,24 @@ def _lazy_smartnotebook_types():
         return None
 
 
+def _lazy_oanda():
+    """Import OandaAdapter; return None if missing or env not configured."""
+    try:
+        from OandaAdapter import (
+            OandaClient, OandaBarFeed, OandaBroker,
+            fetch_account_snapshot, reconcile_with_local_portfolio,
+        )
+        return {
+            "OandaClient": OandaClient,
+            "OandaBarFeed": OandaBarFeed,
+            "OandaBroker": OandaBroker,
+            "fetch_account_snapshot": fetch_account_snapshot,
+            "reconcile_with_local_portfolio": reconcile_with_local_portfolio,
+        }
+    except ImportError:
+        return None
+
+
 # ----------------------------------------------------------------------
 # Engine config.
 # ----------------------------------------------------------------------
@@ -209,6 +227,14 @@ class EngineConfig:
     # GateMind plumbing — broker is paper unless the caller swaps it.
     use_paper_broker: bool = True
     paper_broker_starting_cash: float = 10_000.0
+
+    # ---- OANDA live trading (optional) ----------------------------
+    # When enable_oanda is True and OANDA_API_TOKEN + OANDA_ACCOUNT_ID
+    # are set, GateMind routes orders to OANDA instead of PaperBroker
+    # and main.py polls OANDA for live M15 bars.
+    # Set OANDA_ENVIRONMENT=practice (default) or live.
+    enable_oanda: bool = False
+    oanda_granularity: str = "M15"
 
     # Brain-grade thresholds (confidence -> letter grade). Tunable so
     # different brains can use different scales without code changes.
@@ -344,6 +370,29 @@ class Engine:
                 ))
                 self.PreMortemContext = PMCtx
 
+        # ---- OANDA (live data + broker, optional) ------------------
+        self._oanda_client = None
+        self._oanda_bar_feed = None
+        self._oanda_account_snapshot = None
+        self._oanda = None
+        if self.config.enable_oanda:
+            oanda_lazy = _lazy_oanda()
+            if oanda_lazy is not None:
+                try:
+                    self._oanda_client = oanda_lazy["OandaClient"]()
+                    self._oanda_bar_feed = oanda_lazy["OandaBarFeed"](
+                        client=self._oanda_client,
+                        pair=self.config.pair,
+                        granularity=self.config.oanda_granularity,
+                    )
+                    self._oanda = oanda_lazy
+                except Exception:
+                    # Missing env vars / network failure / import error —
+                    # fall back silently to PaperBroker so the engine
+                    # still boots in degraded mode.
+                    self._oanda_client = None
+                    self._oanda_bar_feed = None
+
         # ---- GateMind ----------------------------------------------
         self.gm = None
         self.BrainGrade = None
@@ -361,10 +410,19 @@ class Engine:
                     path=str(gate_state / "portfolio.json"),
                 )
                 ledger = Ledger(directory=str(gate_state / "ledger"))
-                br = broker if broker is not None else (
-                    PaperBroker(equity=self.config.paper_broker_starting_cash)
-                    if self.config.use_paper_broker else None
-                )
+
+                # Pick broker: explicit > OANDA (if enabled & client up) > paper
+                if broker is not None:
+                    br = broker
+                elif (self.config.enable_oanda
+                        and self._oanda is not None
+                        and self._oanda_client is not None):
+                    br = self._oanda["OandaBroker"](self._oanda_client)
+                elif self.config.use_paper_broker:
+                    br = PaperBroker(equity=self.config.paper_broker_starting_cash)
+                else:
+                    br = None
+
                 if br is not None:
                     self.gm = GM(
                         broker=br, portfolio=portfolio, ledger=ledger,
@@ -745,6 +803,67 @@ class Engine:
             return self.snb.briefing().to_console_string()
         except Exception as e:
             return f"(briefing error: {e})"
+
+    # ==================================================================
+    # OANDA conveniences (no-ops when OANDA is disabled).
+    # ==================================================================
+    def latest_oanda_bar(self):
+        """Return the latest closed OANDA bar, or None.
+
+        Used by main.py's live loop: pass the result as `bar=` to step().
+        Deduplicates internally (returns None if we already returned
+        this bar).
+        """
+        if self._oanda_bar_feed is None:
+            return None
+        try:
+            return self._oanda_bar_feed.latest_new_bar()
+        except Exception:
+            return None
+
+    def oanda_current_price(self) -> float:
+        """Best-effort live mid price from OANDA. 0.0 if unavailable.
+
+        Used by monitor_positions when no recent bar is around.
+        """
+        if self._oanda_bar_feed is None:
+            return 0.0
+        try:
+            p = self._oanda_bar_feed.current_price()
+            return float(p["mid"]) if p else 0.0
+        except Exception:
+            return 0.0
+
+    def fetch_oanda_snapshot(self):
+        """One-shot OANDA account snapshot. None if disabled / failed."""
+        if self._oanda is None or self._oanda_client is None:
+            return None
+        try:
+            snap = self._oanda["fetch_account_snapshot"](self._oanda_client)
+            self._oanda_account_snapshot = snap
+            return snap
+        except Exception:
+            return None
+
+    def reconcile_oanda(self):
+        """Compare OANDA's authoritative open trades against local
+        Portfolio. Returns a ReconciliationResult or None.
+
+        Call at process boot before enabling order routing — if the
+        result's `is_clean=False`, refuse to start trading until the
+        operator resolves the drift.
+        """
+        if (self._oanda is None or self._oanda_client is None
+                or self.gm is None):
+            return None
+        snap = self.fetch_oanda_snapshot()
+        if snap is None:
+            return None
+        return self._oanda["reconcile_with_local_portfolio"](
+            snapshot=snap,
+            local_portfolio=self.gm._portfolio,
+            pair=self.config.pair,
+        )
 
     # ==================================================================
     # LLM augmentation.

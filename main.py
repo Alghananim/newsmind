@@ -68,21 +68,28 @@ def _log(msg: str) -> None:
     print(f"[{_now_iso()}] {msg}", flush=True)
 
 
-def _last_known_price(engine) -> float:
-    """Best-effort 'current price' for the monitor when no live bar feed
-    is wired up.
+def _last_known_price(engine, bar=None) -> float:
+    """Best-effort 'current price' for the monitor.
 
-    Strategy: use the price recorded in any cached open context (the
-    monitor itself updates this every cycle). Returns 0.0 if there are
-    no open positions, which makes monitor_positions a no-op.
+    Priority: 1) live OANDA mid price, 2) latest bar's close,
+    3) cached open-context last_price, 4) cached filled_price.
+    Returns 0.0 if nothing is known.
     """
+    # 1) Live OANDA mid (most accurate)
+    p = engine.oanda_current_price()
+    if p > 0:
+        return p
+    # 2) Latest bar close from this cycle
+    if bar is not None:
+        c = getattr(bar, "close", None)
+        if isinstance(c, (int, float)) and c > 0:
+            return float(c)
+    # 3 + 4) Cached open contexts
     contexts = getattr(engine, "_open_contexts", {})
     for ctx in contexts.values():
         last = getattr(ctx, "last_price", 0.0)
         if last and last > 0:
             return float(last)
-        # Fall back to the entry price; the monitor's first call will
-        # then update last_price for the next cycle.
         entry = getattr(ctx, "filled_price", 0.0)
         if entry and entry > 0:
             return float(entry)
@@ -103,6 +110,12 @@ def main() -> int:
         or (os.environ.get("ENABLE_LLM", "auto").lower() == "auto"
             and bool(os.environ.get("OPENAI_API_KEY")))
     )
+    enable_oanda = (
+        os.environ.get("ENABLE_OANDA", "auto").lower() in ("1", "true", "yes")
+        or (os.environ.get("ENABLE_OANDA", "auto").lower() == "auto"
+            and bool(os.environ.get("OANDA_API_TOKEN"))
+            and bool(os.environ.get("OANDA_ACCOUNT_ID")))
+    )
 
     config = EngineConfig(
         pair=pair,
@@ -110,6 +123,8 @@ def main() -> int:
         injection_language=os.environ.get("INJECTION_LANGUAGE", "en"),
         enable_llm=enable_llm,
         llm_model=os.environ.get("LLM_MODEL", "gpt-5"),
+        enable_oanda=enable_oanda,
+        oanda_granularity=os.environ.get("OANDA_GRANULARITY", "M15"),
     )
     config_dir = ROOT / "NewsMind" / "config"
     engine = Engine(
@@ -128,6 +143,28 @@ def main() -> int:
     _log(f"LLM enabled: {config.enable_llm} "
          f"(model={config.llm_model}, "
          f"client={'ON' if engine._llm_client else 'off'})")
+    _log(f"OANDA enabled: {config.enable_oanda} "
+         f"(client={'ON' if engine._oanda_client else 'off'}, "
+         f"feed={'ON' if engine._oanda_bar_feed else 'off'})")
+
+    # ---- OANDA reconciliation at boot ------------------------------
+    # If OANDA is on, fetch the authoritative account view and compare
+    # it to the local Portfolio. Refuse to start trading on drift.
+    if engine._oanda_client is not None:
+        snap = engine.fetch_oanda_snapshot()
+        if snap is not None:
+            _log(snap.one_line_summary())
+        recon = engine.reconcile_oanda()
+        if recon is not None:
+            if recon.is_clean:
+                _log(f"OANDA reconcile: clean "
+                     f"(local={recon.local_positions}, "
+                     f"oanda={recon.oanda_trades})")
+            else:
+                _log(f"OANDA reconcile: DRIFT "
+                     f"(only_in_local={len(recon.only_in_local)}, "
+                     f"only_in_oanda={len(recon.only_in_oanda)})")
+                _log("Trading-side will run but you should resolve the drift.")
 
     # ---- adapter bring-up: only NewsMind has live polling adapters --
     nm = engine.nm
@@ -179,10 +216,11 @@ def main() -> int:
                         _log(f"ingest error: {e}")
 
             # 2) Engine.step() — composes the 5 brains over the *latest
-            # available* state. Bar/bundle are None in this streaming
-            # mode; ChartMind/MarketMind will skip without them.
+            # available* state. Bar comes from OANDA when enabled; else
+            # None and ChartMind sits out the cycle.
+            bar = engine.latest_oanda_bar()
             try:
-                decision = engine.step(bar=None, bundle=None, now_utc=now)
+                decision = engine.step(bar=bar, bundle=None, now_utc=now)
                 action = decision.action
                 if decision.halt_sources:
                     halt = "+".join(decision.halt_sources)
@@ -203,10 +241,10 @@ def main() -> int:
             # opened so this is a fast no-op.
             mon_part = ""
             try:
-                last_price = _last_known_price(engine)
+                last_price = _last_known_price(engine, bar=bar)
                 if last_price > 0 and engine.gm is not None:
                     mr = engine.monitor_positions(
-                        current_price=last_price, now_utc=now,
+                        current_price=last_price, bar_reading=bar, now_utc=now,
                     )
                     if mr is not None and (mr.actions_applied or mr.trades_recorded
                                             or mr.positions_seen):
@@ -222,7 +260,6 @@ def main() -> int:
 
             cycle += 1
 
-            # 3) periodic checkpoint.
             if cycle % checkpoint_every == 0:
                 if nm is not None:
                     try:
@@ -230,13 +267,11 @@ def main() -> int:
                     except Exception:
                         pass
 
-            # 4) periodic morning briefing.
             if cycle % briefing_every == 0 and engine.snb is not None:
                 _log("--- SmartNoteBook briefing (periodic) ---")
                 for line in engine.briefing_console_string().splitlines():
                     _log(f"  {line}")
 
-            # 5) responsive sleep — wakes within ~1s of SIGTERM.
             for _ in range(interval):
                 if stop_flag["stop"]:
                     break
