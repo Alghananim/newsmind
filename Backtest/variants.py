@@ -75,6 +75,21 @@ class VariantFilter:
     # production; only for offline parameter sweep.
     disable_max_dd_halt: bool = False
 
+    # Trailing stop: once MFE reaches `trail_stop_after_r` × initial-risk,
+    # move the stop to break-even. After that, every additional 0.5R of
+    # MFE moves the stop another 0.5R closer (asymmetric trail).
+    # 0.0 = disabled (no trailing).
+    trail_stop_after_r: float = 0.0
+
+    # Override the BacktestConfig.risk_per_trade_pct for THIS variant
+    # only. None = inherit. Useful for testing higher-risk profiles
+    # without touching the global config.
+    risk_pct_override: float | None = None
+
+    # Override the time-budget (bars to hold). None = inherit (12 bars).
+    # Lower = forces faster exits; higher = lets trades breathe longer.
+    time_budget_override: int | None = None
+
     # ===============================================================
     # The decision function.
     # ===============================================================
@@ -162,6 +177,79 @@ VARIANTS: dict[str, VariantFilter] = {
         allowed_setups=("signal_entry_continuation", "pattern_double_bottom"),
         min_confidence=0.6,
         min_rr=2.0,
+    ),
+
+    # ------------------------------------------------------------------
+    # Round-2 variants: trailing stop, risk scaling, per-pair tuning.
+    # ------------------------------------------------------------------
+
+    # EUR/USD per-pair tuning. Best round-1 finding: kill_asia +5.34%.
+    "eu_pro": VariantFilter(
+        name="eu_pro",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=1.0,
+    ),
+    "eu_pro_risk1": VariantFilter(
+        name="eu_pro_risk1",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=1.0,
+        risk_pct_override=1.0,
+    ),
+    "eu_pro_risk15": VariantFilter(
+        name="eu_pro_risk15",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=1.0,
+        risk_pct_override=1.5,
+    ),
+
+    # USD/JPY per-pair tuning. Best round-1 finding: london_only +7.31%.
+    "jp_pro": VariantFilter(
+        name="jp_pro",
+        allowed_hours_utc=(8, 9, 10, 11),
+        trail_stop_after_r=1.0,
+    ),
+    "jp_pro_risk1": VariantFilter(
+        name="jp_pro_risk1",
+        allowed_hours_utc=(8, 9, 10, 11),
+        trail_stop_after_r=1.0,
+        risk_pct_override=1.0,
+    ),
+    "jp_pro_risk15": VariantFilter(
+        name="jp_pro_risk15",
+        allowed_hours_utc=(8, 9, 10, 11),
+        trail_stop_after_r=1.0,
+        risk_pct_override=1.5,
+    ),
+
+    # GBP/USD per-pair tuning. Best round-1: ultra_quality +4.13% (no halt!)
+    "gb_pro": VariantFilter(
+        name="gb_pro",
+        allowed_hours_utc=(8, 9, 10, 11, 12, 13, 14, 15),
+        allowed_setups=("signal_entry_continuation", "pattern_double_bottom"),
+        min_confidence=0.6,
+        min_rr=2.0,
+        trail_stop_after_r=1.0,
+    ),
+    "gb_pro_risk1": VariantFilter(
+        name="gb_pro_risk1",
+        allowed_hours_utc=(8, 9, 10, 11, 12, 13, 14, 15),
+        allowed_setups=("signal_entry_continuation", "pattern_double_bottom"),
+        min_confidence=0.6,
+        min_rr=2.0,
+        trail_stop_after_r=1.0,
+        risk_pct_override=1.0,
+    ),
+
+    # Diagnostic full-window runs (halt disabled, baseline filters).
+    "kill_asia_no_halt": VariantFilter(
+        name="kill_asia_no_halt",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        disable_max_dd_halt=True,
+    ),
+    "london_only_no_halt": VariantFilter(
+        name="london_only_no_halt",
+        allowed_hours_utc=(8, 9, 10, 11),
+        disable_max_dd_halt=True,
     ),
 }
 

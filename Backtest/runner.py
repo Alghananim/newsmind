@@ -96,6 +96,8 @@ class _OpenPosition:
     bars_held: int = 0
     mfe_pips: float = 0.0
     mae_pips: float = 0.0
+    initial_risk_pips: float = 0.0   # |entry-stop| in pips at open
+    trailed_to_be: bool = False      # stop already moved to break-even
     spread_pips_at_entry: float = 0.5
     entry_commission: float = 0.0
 
@@ -185,8 +187,12 @@ class BacktestRunner:
             fallback_spread_pips=config.fallback_spread_pips,
             commission_per_lot_per_side=config.commission_per_lot_per_side,
         )
+        # Variant may override risk_per_trade_pct.
+        _eff_risk_pct = (self.variant.risk_pct_override
+                         if self.variant.risk_pct_override is not None
+                         else config.risk_per_trade_pct)
         self.risk = risk_manager or RiskManager(
-            risk_per_trade_pct=config.risk_per_trade_pct,
+            risk_per_trade_pct=_eff_risk_pct,
             daily_loss_cap_pct=config.daily_loss_cap_pct,
             max_drawdown_cap_pct=config.max_drawdown_cap_pct,
             max_consecutive_losses=config.max_consecutive_losses,
@@ -339,6 +345,7 @@ class BacktestRunner:
             risk_amount_currency=sig.sized_risk_currency,
             requested_price=sig.entry_price,
             bars_held=0,
+            initial_risk_pips=abs(fill.fill_price - sig.stop_price) / self.config.pair_pip,
             spread_pips_at_entry=fill.spread_paid_pips,
             entry_commission=fill.commission_currency,
         )
@@ -370,6 +377,30 @@ class BacktestRunner:
             pos.mfe_pips = mfe_candidate
         if mae_candidate > pos.mae_pips:
             pos.mae_pips = mae_candidate
+
+        # Trailing stop logic (variant-driven).
+        # Once MFE reaches `trail_stop_after_r * initial_risk_pips`,
+        # move stop to break-even. After every additional 0.5R of
+        # MFE, ratchet the stop another 0.5R closer.
+        if (self.variant.trail_stop_after_r > 0
+                and pos.initial_risk_pips > 0):
+            mfe_r = pos.mfe_pips / pos.initial_risk_pips
+            trigger = self.variant.trail_stop_after_r
+            if mfe_r >= trigger and not pos.trailed_to_be:
+                # Move stop to break-even (entry price)
+                pos.stop_price = pos.entry_price
+                pos.trailed_to_be = True
+            if pos.trailed_to_be and mfe_r > trigger + 0.5:
+                # Ratchet: trail stop 0.5R behind current MFE peak.
+                trail_offset_pips = (mfe_r - 0.5) * pos.initial_risk_pips
+                if pos.direction == "long":
+                    new_stop = pos.entry_price + trail_offset_pips * self.config.pair_pip
+                    if new_stop > pos.stop_price:
+                        pos.stop_price = new_stop
+                else:
+                    new_stop = pos.entry_price - trail_offset_pips * self.config.pair_pip
+                    if new_stop < pos.stop_price:
+                        pos.stop_price = new_stop
 
         # Stop check (worst-case first)
         stop_fill = self.costs.simulate_stop_hit(
@@ -586,9 +617,9 @@ class BacktestRunner:
         the time_budget_bars constant. For now we use a sensible
         default if the budget isn't tracked on the open position.
         """
-        # _OpenPosition does not carry budget; we use 24 bars (6 hours
-        # at M15) as the conservative default — beyond that the setup
-        # has had enough time to develop.
+        # Variant may override the budget; otherwise default 24 bars.
+        if self.variant.time_budget_override is not None:
+            return self.variant.time_budget_override
         return 24
 
     def _reset_counters(self) -> None:

@@ -42,15 +42,23 @@ jobs:
       fail-fast: false
       matrix:
         variant:
+          # Round 1 baseline & filters (kept for comparison)
           - baseline
           - kill_asia
           - london_only
-          - london_overlap
-          - drop_double_top
-          - continuation_focus
-          - prime
-          - prime_no_halt
           - ultra_quality
+          # Round 2: trailing-stop + per-pair tuning + risk scaling
+          - eu_pro
+          - eu_pro_risk1
+          - eu_pro_risk15
+          - jp_pro
+          - jp_pro_risk1
+          - jp_pro_risk15
+          - gb_pro
+          - gb_pro_risk1
+          # Diagnostic: full-window halt-disabled
+          - kill_asia_no_halt
+          - london_only_no_halt
         pair:
           - EUR/USD
           - USD/JPY
