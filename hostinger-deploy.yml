@@ -1,0 +1,102 @@
+# Hostinger-deploy.yml — self-contained Compose for Hostinger Docker Manager.
+#
+# This file pulls the source from GitHub at container start, installs
+# dependencies, and runs the live loop. It uses python:3.11-slim as
+# the base image so Hostinger's "Compose Manually" workflow can boot
+# it without needing a separate build step.
+#
+# Trade-off vs the canonical docker-compose.yml at the repo root:
+#   * Slower first start (~90s for clone + pip install)
+#   * Slower restart (same, because we re-clone for `latest`)
+#   * Self-contained: no separate build pipeline needed
+#
+# For production with frequent deploys, consider building an image
+# via GitHub Actions and publishing to GHCR; this file is for the
+# fastest possible time-to-deploy on a fresh Hostinger Docker Manager.
+#
+# Environment variables — supply them via Hostinger Settings ->
+# Environment Variables on this Docker project. None are required for
+# the system to boot; missing variables degrade specific subsystems:
+#   OPENAI_API_KEY     LLM disabled, mechanical-only
+#   OANDA_API_TOKEN    PaperBroker, no live trading
+#   OANDA_ACCOUNT_ID   PaperBroker, no live trading
+#   TELEGRAM_TOKEN     Telegram notifications silenced
+#   TELEGRAM_CHAT_ID   Telegram notifications silenced
+
+version: "3.9"
+
+services:
+  newsmind:
+    image: python:3.11-slim
+    container_name: newsmind
+    restart: unless-stopped
+    working_dir: /app
+    environment:
+      # ---- core loop ----------------------------------------------
+      - POLL_INTERVAL_SEC=60
+      - CHECKPOINT_EVERY_CYCLES=5
+      - BRIEFING_EVERY_CYCLES=60
+      - PAIR=EUR/USD
+      - STATE_DIR=/app/NewsMind/state
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+
+      # ---- LLM / OANDA / Telegram (defaults to empty when unset) --
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - LLM_MODEL=${LLM_MODEL:-gpt-5}
+      - ENABLE_LLM=${ENABLE_LLM:-auto}
+      - INJECTION_LANGUAGE=${INJECTION_LANGUAGE:-en}
+      - OANDA_API_TOKEN=${OANDA_API_TOKEN:-}
+      - OANDA_ACCOUNT_ID=${OANDA_ACCOUNT_ID:-}
+      - OANDA_ENVIRONMENT=${OANDA_ENVIRONMENT:-practice}
+      - OANDA_GRANULARITY=${OANDA_GRANULARITY:-M15}
+      - ENABLE_OANDA=${ENABLE_OANDA:-auto}
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN:-}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
+
+    volumes:
+      - newsmind_state:/app/NewsMind/state
+      - newsmind_repo:/app
+
+    networks:
+      - newsmind_net
+      - rsshub_net
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+    # Bootstrap + run. Using `bash -c` so we can chain steps.
+    # Idempotent: if /app/.git already exists we just `git pull`.
+    command:
+      - bash
+      - -c
+      - |
+        set -e
+        apt-get update -qq && apt-get install -y --no-install-recommends git ca-certificates >/dev/null 2>&1
+        if [ ! -d /app/.git ]; then
+          echo "[bootstrap] cloning newsmind..."
+          git clone --depth 1 https://github.com/Alghananim/newsmind.git /tmp/newsmind
+          cp -a /tmp/newsmind/. /app/
+          rm -rf /tmp/newsmind
+        else
+          echo "[bootstrap] pulling latest..."
+          cd /app && git pull --ff-only || echo "[bootstrap] pull failed, continuing with cached source"
+        fi
+        echo "[bootstrap] installing python deps..."
+        pip install --no-cache-dir -q -r /app/requirements.txt
+        echo "[bootstrap] handing off to main.py..."
+        exec python /app/main.py
+
+networks:
+  newsmind_net:
+    driver: bridge
+  rsshub_net:
+    external: true
+    name: rsshub-cs4k_default
+
+volumes:
+  newsmind_state:
+  newsmind_repo:
