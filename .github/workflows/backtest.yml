@@ -1,0 +1,174 @@
+# GitHub Actions: 2-year multi-pair EUR/USD + USD/JPY + GBP/USD backtest.
+#
+# Runs automatically on:
+#   * every push to main (smoke + 6-month synthetic check)
+#   * weekly Sunday 06:00 UTC (full 2-year OANDA real data)
+#   * manual trigger (workflow_dispatch) — optional duration override
+#
+# Required secrets (GitHub Settings -> Secrets and variables -> Actions)
+#   OANDA_API_TOKEN          — your OANDA practice/live token
+#   OANDA_ACCOUNT_ID         — your account id (e.g. 101-001-XXXXXXXX-001)
+#   OANDA_ENVIRONMENT        — optional, defaults to "practice"
+#
+# Outputs
+#   backtest-results-<run_id>  — artifact with per-pair report.txt +
+#                                 results.json + comparison.json
+#                                 (downloadable from the Actions UI for 90 days)
+#   workflow log               — printed summary visible directly in the
+#                                 Actions UI without downloading
+
+name: Backtest
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Backtest/**'
+      - 'ChartMind/**'
+      - 'SmartNoteBook/**'
+      - 'OandaAdapter/**'
+      - 'Engine.py'
+      - 'scripts/**'
+      - '.github/workflows/backtest.yml'
+  schedule:
+    - cron: '0 6 * * 0'             # Sunday 06:00 UTC weekly
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Mode: synthetic (fast smoke) or oanda (real, slow)'
+        required: false
+        default: 'oanda'
+        type: choice
+        options:
+          - oanda
+          - synthetic
+
+jobs:
+  backtest:
+    name: Multi-pair backtest
+    runs-on: ubuntu-latest
+    timeout-minutes: 60        # 2-year OANDA fetch + backtest can take 30-45 min
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Decide run mode
+        id: mode
+        run: |
+          # Default: synthetic on push (fast), oanda on schedule, manual choice on dispatch
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            echo "use_synthetic=false" >> $GITHUB_OUTPUT
+            echo "Mode: OANDA (scheduled weekly)"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ "${{ inputs.mode }}" = "synthetic" ]; then
+              echo "use_synthetic=true" >> $GITHUB_OUTPUT
+              echo "Mode: SYNTHETIC (manual choice)"
+            else
+              echo "use_synthetic=false" >> $GITHUB_OUTPUT
+              echo "Mode: OANDA (manual choice)"
+            fi
+          else
+            # push event — fast synthetic check
+            echo "use_synthetic=true" >> $GITHUB_OUTPUT
+            echo "Mode: SYNTHETIC (push event — fast smoke check)"
+          fi
+
+      - name: Verify OANDA secrets present (when needed)
+        if: steps.mode.outputs.use_synthetic == 'false'
+        run: |
+          if [ -z "${{ secrets.OANDA_API_TOKEN }}" ] || [ -z "${{ secrets.OANDA_ACCOUNT_ID }}" ]; then
+            echo "::warning ::OANDA secrets missing — falling back to synthetic"
+            echo "FALLBACK_TO_SYNTHETIC=true" >> $GITHUB_ENV
+          else
+            echo "OANDA secrets configured."
+          fi
+
+      - name: Run multi-pair backtest
+        env:
+          # Pass through to scripts/run_multi_pair_backtest.py
+          USE_SYNTHETIC: ${{ steps.mode.outputs.use_synthetic == 'true' && 'true' || env.FALLBACK_TO_SYNTHETIC == 'true' && 'true' || '' }}
+          OANDA_API_TOKEN: ${{ secrets.OANDA_API_TOKEN }}
+          OANDA_ACCOUNT_ID: ${{ secrets.OANDA_ACCOUNT_ID }}
+          OANDA_ENVIRONMENT: ${{ secrets.OANDA_ENVIRONMENT || 'practice' }}
+          BACKTEST_OUTPUT_DIR: ${{ github.workspace }}/backtest_output
+          # LLM disabled in CI to avoid OpenAI costs; backtest evaluates
+          # the mechanical strategy only. To enable on a particular run,
+          # add OPENAI_API_KEY as a repo secret and uncomment below.
+          # OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          mkdir -p $BACKTEST_OUTPUT_DIR
+          python scripts/run_multi_pair_backtest.py | tee $BACKTEST_OUTPUT_DIR/run.log
+
+      - name: Show comparison summary in workflow log
+        if: always()
+        run: |
+          echo "============================================================"
+          echo " BACKTEST SUMMARY"
+          echo "============================================================"
+          if [ -f "${{ github.workspace }}/backtest_output/comparison.json" ]; then
+            python - <<'PY'
+          import json, pathlib
+          p = pathlib.Path("backtest_output/comparison.json")
+          data = json.loads(p.read_text())
+          print(f"{'Pair':10s} | {'N':>5s} | {'WR':>6s} | {'E (R)':>7s} | "
+                f"{'PF':>5s} | {'SQN':>6s} | {'MaxDD':>7s} | {'Return':>9s} | {'Annual':>9s}")
+          print("-" * 95)
+          for s in data:
+              print(
+                  f"{s['pair']:10s} | "
+                  f"{s['n_trades']:>5d} | "
+                  f"{s['win_rate']*100:>5.1f}% | "
+                  f"{s['expectancy_r']:>+6.3f} | "
+                  f"{s['profit_factor']:>5.2f} | "
+                  f"{s['sqn']:>6.2f} | "
+                  f"{s['max_dd_pct']:>6.2f}% | "
+                  f"{s['total_return_pct']:>+8.2f}% | "
+                  f"{s['annualised_return_pct']:>+8.2f}%"
+              )
+          # Step Summary (rendered as Markdown in the Actions UI)
+          import os
+          summary = os.environ.get("GITHUB_STEP_SUMMARY")
+          if summary:
+              with open(summary, "a") as f:
+                  f.write("## Backtest comparison\n\n")
+                  f.write("| Pair | N | WR | E (R) | PF | SQN | Max DD | Return | Annual |\n")
+                  f.write("|---|---:|---:|---:|---:|---:|---:|---:|---:|\n")
+                  for s in data:
+                      f.write(
+                          f"| {s['pair']} | {s['n_trades']} | "
+                          f"{s['win_rate']*100:.1f}% | {s['expectancy_r']:+.3f} | "
+                          f"{s['profit_factor']:.2f} | {s['sqn']:.2f} | "
+                          f"{s['max_dd_pct']:.2f}% | "
+                          f"{s['total_return_pct']:+.2f}% | "
+                          f"{s['annualised_return_pct']:+.2f}% |\n"
+                      )
+                  ok_150 = [s["pair"] for s in data if s["total_return_pct"] > 150]
+                  if ok_150:
+                      f.write(f"\n**Above 150% target on:** {', '.join(ok_150)}\n")
+                  ok_pos = [s for s in data if s["total_return_pct"] > 0]
+                  f.write(f"\nProfitable on {len(ok_pos)}/{len(data)} pairs.\n")
+          PY
+          else
+            echo "(no comparison.json produced)"
+          fi
+
+      - name: Upload backtest artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backtest-results-${{ github.run_number }}
+          path: backtest_output/
+          retention-days: 90
+          if-no-files-found: warn
