@@ -21,31 +21,25 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Round-7 regime-aware candidates (the missing fix)
-          - variant: regime_eur
+          # ChartMindV2 candidates (rebuilt from scratch)
+          - variant: v2_balanced_eur
             pair: EUR/USD
-          - variant: regime_jpy
+          - variant: v2_balanced_jpy
             pair: USD/JPY
-          - variant: regime_gbp
+          - variant: v2_balanced_gbp
             pair: GBP/USD
+          - variant: v2_strict
+            pair: EUR/USD
+          - variant: v2_strict
+            pair: USD/JPY
+          - variant: v2_strict
+            pair: GBP/USD
+          # Anchors: best v1 variants for direct comparison
           - variant: regime_strict
             pair: EUR/USD
           - variant: regime_strict
             pair: USD/JPY
           - variant: regime_strict
-            pair: GBP/USD
-          - variant: regime_aggressive
-            pair: EUR/USD
-          - variant: regime_aggressive
-            pair: USD/JPY
-          - variant: regime_aggressive
-            pair: GBP/USD
-          # Round-6 anchors (no regime filter) for comparison
-          - variant: robust_eur
-            pair: EUR/USD
-          - variant: robust_jpy
-            pair: USD/JPY
-          - variant: robust_gbp
             pair: GBP/USD
 
     steps:

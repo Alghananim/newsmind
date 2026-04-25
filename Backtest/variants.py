@@ -117,6 +117,19 @@ class VariantFilter:
     # Used INSIDE allowed_regimes filter as an extra strength check.
     min_adx: float = 0.0
 
+    # Use ChartMindV2 (rebuilt confluence-based) instead of v1.
+    # Default False = legacy v1 pattern matcher.
+    # True = v2 with multi-timeframe trend + structure + candles + momentum
+    # + regime + 6-factor confluence + A+/A/B/C grade.
+    use_chartmind_v2: bool = False
+
+    # Minimum grade for v2 (only used when use_chartmind_v2=True).
+    # "C" = no filter, "B" = require >=B, "A" = require >=A, etc.
+    v2_min_grade: str = "B"
+
+    # Minimum confluence score for v2 (0..6).
+    v2_min_confluence: float = 4.0
+
     # ===============================================================
     # The decision function.
     # ===============================================================
@@ -567,6 +580,57 @@ VARIANTS: dict[str, VariantFilter] = {
         atr_surge_threshold=2.0,
         allowed_regimes=("TRENDING_UP", "TRENDING_DOWN"),
         min_adx=20.0,
+    ),
+
+    # ------------------------------------------------------------------
+    # ChartMindV2 — rebuilt confluence engine. Replaces v1 pattern
+    # matching with multi-timeframe trend alignment + structure
+    # confluence + candle confirmation at structure + momentum
+    # agreement + regime gate.
+    # ------------------------------------------------------------------
+    "v2_balanced_eur": VariantFilter(
+        name="v2_balanced_eur",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=2.0,
+        risk_pct_override=1.0,
+        halt_pause_days=7,
+        atr_surge_threshold=1.8,
+        use_chartmind_v2=True,
+        v2_min_grade="B",
+        v2_min_confluence=4.0,
+    ),
+    "v2_balanced_jpy": VariantFilter(
+        name="v2_balanced_jpy",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=1.5,
+        risk_pct_override=1.0,
+        halt_pause_days=7,
+        atr_surge_threshold=1.8,
+        use_chartmind_v2=True,
+        v2_min_grade="B",
+        v2_min_confluence=4.0,
+    ),
+    "v2_balanced_gbp": VariantFilter(
+        name="v2_balanced_gbp",
+        allowed_hours_utc=(8, 9, 10, 11, 12, 13, 14, 15),
+        trail_stop_after_r=2.0,
+        risk_pct_override=1.0,
+        halt_pause_days=7,
+        atr_surge_threshold=1.8,
+        use_chartmind_v2=True,
+        v2_min_grade="B",
+        v2_min_confluence=4.0,
+    ),
+    "v2_strict": VariantFilter(
+        name="v2_strict",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        trail_stop_after_r=2.5,
+        risk_pct_override=1.0,
+        halt_pause_days=7,
+        atr_surge_threshold=1.5,
+        use_chartmind_v2=True,
+        v2_min_grade="A",
+        v2_min_confluence=5.0,
     ),
 }
 

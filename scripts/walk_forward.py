@@ -111,6 +111,15 @@ def main() -> int:
         )
         snb = SmartNoteBook(SmartNoteBookConfig(
             state_dir=str(pair_dir / f"q{q}" / "snb"), pair=pair))
+        # Pick ChartMind v1 vs v2 based on variant flag
+    if getattr(variant, "use_chartmind_v2", False):
+        from ChartMindV2 import ChartMindV2
+        cm = ChartMindV2(
+            pair_pip=spec["pair_pip"],
+            min_grade=variant.v2_min_grade,
+            min_confluence=variant.v2_min_confluence,
+        )
+    else:
         cm = ChartMind()
         runner = BacktestRunner(config=cfg, chartmind=cm, snb=snb,
                                 variant_filter=variant)
