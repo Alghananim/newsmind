@@ -65,7 +65,6 @@ services:
 
     networks:
       - newsmind_net
-      - rsshub_net
 
     logging:
       driver: json-file
@@ -88,4 +87,5 @@ services:
         echo "[bootstrap] fetching latest main from GitHub..."
         rm -rf /tmp/newsmind_fresh
         git clone --depth 1 https://github.com/Alghananim/newsmind.git /tmp/newsmind_fresh
-        # Preserve the .git dir for diagnostics + sta
+        # Preserve the .git dir for diagnostics + state-only paths
+     
