@@ -28,7 +28,6 @@ version: "3.9"
 services:
   newsmind:
     image: python:3.11-slim
-    container_name: newsmind
     restart: unless-stopped
     working_dir: /app
     environment:
@@ -89,4 +88,4 @@ services:
         echo "[bootstrap] fetching latest main from GitHub..."
         rm -rf /tmp/newsmind_fresh
         git clone --depth 1 https://github.com/Alghananim/newsmind.git /tmp/newsmind_fresh
-        # Preserve the .
+        # Preserve the .git dir for diagnostics + sta
