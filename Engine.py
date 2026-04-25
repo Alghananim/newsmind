@@ -155,6 +155,36 @@ def _lazy_brain_llm_modules():
         return None
 
 
+def _lazy_position_monitor():
+    """Import the position monitor module; return None if missing."""
+    try:
+        import position_monitor
+        return position_monitor
+    except ImportError:
+        return None
+
+
+def _lazy_chartmind_planner():
+    """Import ChartMind.planner for monitor_position; None if missing."""
+    try:
+        from ChartMind import planner as cm_planner
+        return cm_planner
+    except ImportError:
+        return None
+
+
+def _lazy_smartnotebook_types():
+    """Import the SmartNoteBook types needed to build TradeRecord."""
+    try:
+        from SmartNoteBook import (
+            TradeRecord, TradeOutcome, BrainGradeRecord,
+        )
+        from SmartNoteBook.journal import new_trade_id
+        return TradeRecord, TradeOutcome, BrainGradeRecord, new_trade_id
+    except ImportError:
+        return None
+
+
 # ----------------------------------------------------------------------
 # Engine config.
 # ----------------------------------------------------------------------
@@ -343,6 +373,24 @@ class Engine:
         # Cache of pre-mortems keyed by broker_order_id for later
         # post-mortem ingestion when the trade closes.
         self._pending_pre_mortems: dict[str, Any] = {}
+
+        # Open-position contexts keyed by broker_order_id. Populated
+        # when a trade opens (in step()), consumed by the monitor when
+        # the trade closes. See position_monitor.OpenContext.
+        self._open_contexts: dict[str, Any] = {}
+
+        # ---- Position monitor -------------------------------------
+        self._pm_module = _lazy_position_monitor()
+        self._cm_planner = _lazy_chartmind_planner()
+        snb_types = _lazy_smartnotebook_types()
+        if snb_types is not None:
+            (self._TradeRecord, self._TradeOutcome,
+             self._BrainGradeRecord, self._new_trade_id) = snb_types
+        else:
+            self._TradeRecord = None
+            self._TradeOutcome = None
+            self._BrainGradeRecord = None
+            self._new_trade_id = None
 
         # ---- LLM (optional) ----------------------------------------
         self._llm_client = None
@@ -547,14 +595,27 @@ class Engine:
                 )
                 gate_result = self.gm.cycle(gctx)
 
-                # If a position opened, stash the pre-mortem keyed by
-                # the broker_order_id so record_close() can pair them.
+                # If a position opened, stash the pre-mortem AND the
+                # full OpenContext keyed by broker_order_id so
+                # monitor_positions() / record_close() can pair them.
                 if (gate_result is not None
-                        and getattr(gate_result, "position", None) is not None
-                        and pre_mortem is not None):
-                    boid = getattr(gate_result.position, "broker_order_id", None)
+                        and getattr(gate_result, "position", None) is not None):
+                    pos = gate_result.position
+                    boid = getattr(pos, "broker_order_id", None)
                     if boid:
-                        self._pending_pre_mortems[boid] = pre_mortem
+                        if pre_mortem is not None:
+                            self._pending_pre_mortems[boid] = pre_mortem
+                        self._cache_open_context(
+                            boid=boid,
+                            pos=pos,
+                            plan=plan,
+                            grades=grades,
+                            sized=getattr(gate_result, "sized", None),
+                            news_ctx=news_ctx,
+                            market_ctx=market_ctx,
+                            pre_mortem=pre_mortem,
+                            now=now,
+                        )
             except Exception as e:
                 gate_result = None
 
@@ -836,6 +897,183 @@ class Engine:
         }
 
     # ==================================================================
+    # Position monitoring (cycle-by-cycle on open positions).
+    # ==================================================================
+    def monitor_positions(self,
+                          *,
+                          current_price: float,
+                          bar_reading: Any = None,
+                          now_utc: Optional[datetime] = None) -> Any:
+        """Run one monitor cycle over every open position for self.config.pair.
+
+        Should be called by the caller (typically the live loop in
+        main.py) after every new bar. The monitor:
+
+            1. iterates open positions in GateMind's portfolio,
+            2. asks ChartMind.planner.monitor_position for an action,
+            3. applies the action via GateMind.monitor (move stop, partial,
+               full exit),
+            4. for full-exit actions, builds a TradeRecord from the cached
+               OpenContext and routes it to SmartNoteBook via record_close().
+
+        Returns a `position_monitor.MonitorResult` with counters useful
+        for the live status line, or None if the monitor cannot run
+        (missing GateMind, missing ChartMind.planner, or position_monitor
+        module not installed).
+        """
+        if (self._pm_module is None
+                or self.gm is None
+                or self._cm_planner is None):
+            return None
+        now = now_utc or datetime.now(timezone.utc)
+        return self._pm_module.monitor_open_positions(
+            gatemind=self.gm,
+            chartmind_planner=self._cm_planner,
+            open_contexts=self._open_contexts,
+            current_price=current_price,
+            bar_reading=bar_reading,
+            pair=self.config.pair,
+            on_close=self._on_position_close,
+            now=now,
+        )
+
+    # ----- on_close callback for the monitor ---------------------------
+    def _on_position_close(self, *,
+                           broker_order_id: str,
+                           position: Any,
+                           action: str,
+                           exit_price: float,
+                           open_ctx: Any,
+                           health: Any,
+                           now: datetime) -> Optional[str]:
+        """Build a TradeRecord and route it through record_close().
+
+        Returns the trade_id on success, None on any failure (logged in
+        MonitorResult.errors instead).
+        """
+        if (self._TradeRecord is None
+                or self._TradeOutcome is None
+                or self._BrainGradeRecord is None
+                or self._new_trade_id is None
+                or self._pm_module is None):
+            return None
+        try:
+            record = self._pm_module.build_trade_record(
+                trade_record_cls=self._TradeRecord,
+                trade_outcome_cls=self._TradeOutcome,
+                brain_grade_record_cls=self._BrainGradeRecord,
+                new_trade_id_fn=self._new_trade_id,
+                position=position,
+                open_ctx=open_ctx,
+                exit_price=exit_price,
+                exit_reason=self._classify_exit_reason(action, health, position, exit_price),
+                bars_held=open_ctx.bars_held,
+                now=now,
+            )
+        except Exception:
+            return None
+
+        try:
+            self.record_close(record)
+        except Exception:
+            return None
+        return record.trade_id
+
+    @staticmethod
+    def _classify_exit_reason(action: str, health: Any,
+                              position: Any, exit_price: float) -> str:
+        """Translate a (action, health, position) tuple into a canonical
+        exit_reason string the post_mortem expects.
+        """
+        if action == "partial_exit":
+            return "partial"
+        # Stop / target heuristic over the actual exit price
+        d = position.direction
+        if d == "long":
+            if exit_price <= position.stop_price + 1e-9:
+                return "stop"
+            if exit_price >= position.target_price - 1e-9:
+                return "target"
+        else:
+            if exit_price >= position.stop_price - 1e-9:
+                return "stop"
+            if exit_price <= position.target_price + 1e-9:
+                return "target"
+        # Otherwise infer from health reasons
+        reasons = " ".join(getattr(health, "reasons", []) or [])
+        rl = reasons.lower()
+        if "invalid" in rl:
+            return "setup_invalidated"
+        if "time" in rl or "decay" in rl:
+            return "time_decay"
+        if "kill" in rl:
+            return "kill_switch"
+        return "manual"
+
+    # ----- cache an OpenContext when a trade opens --------------------
+    def _cache_open_context(self, *,
+                            boid: str,
+                            pos: Any,
+                            plan: Any,
+                            grades: list,
+                            sized: Any,
+                            news_ctx: Any,
+                            market_ctx: Any,
+                            pre_mortem: Any,
+                            now: datetime) -> None:
+        """Stash the open-time context so the monitor can build a
+        complete TradeRecord at close time.
+        """
+        if self._pm_module is None:
+            return
+        OpenContext = self._pm_module.OpenContext
+        gate_combined = _avg_confidence(grades) if grades else 0.0
+        spread_pct = _extract_spread_pct(market_ctx, news_ctx)
+        spread_pips = _extract_spread_pips(market_ctx, news_ctx)
+        regime = _extract_regime(market_ctx)
+        nstate = _extract_news_state(news_ctx)
+        sizing_method = "fixed_fractional"
+        risk_amount = float(getattr(pos, "risk_amount", 0.0))
+        lot_size = float(getattr(pos, "lot", 0.0))
+        if sized is not None:
+            sizing_method = str(getattr(sized, "method", sizing_method))
+            if hasattr(sized, "risk_amount"):
+                risk_amount = float(sized.risk_amount)
+            if hasattr(sized, "lot"):
+                lot_size = float(sized.lot)
+
+        requested_price = float(getattr(plan, "entry_price", 0.0))
+        filled_price = float(getattr(pos, "entry_price", requested_price))
+        slippage_pips = (
+            (filled_price - requested_price) / 0.0001
+            if pos.direction == "long"
+            else (requested_price - filled_price) / 0.0001
+        )
+
+        ctx = OpenContext(
+            pair=self.config.pair,
+            plan=plan,
+            brain_grades=list(grades or []),
+            gate_combined_confidence=gate_combined,
+            market_regime=regime,
+            news_state=nstate,
+            spread_pips_at_entry=spread_pips,
+            spread_percentile_rank=spread_pct,
+            requested_price=requested_price,
+            filled_price=filled_price,
+            slippage_pips=slippage_pips,
+            lot_size=lot_size,
+            risk_amount_currency=risk_amount,
+            sizing_method=sizing_method,
+            broker_order_id=boid,
+            opened_at=getattr(pos, "opened_at", now) or now,
+            pre_mortem_top_risk=getattr(pre_mortem, "top_failure_mode", "") if pre_mortem else "",
+
+            pre_mortem_predicted_outcome=getattr(pre_mortem, "predicted_outcome", "") if pre_mortem else "",
+        )
+        self._open_contexts[boid] = ctx
+
+    # ==================================================================
     # Internals.
     # ==================================================================
     def _inject_market(self, chart_analysis, market_ctx) -> None:
@@ -876,27 +1114,10 @@ class Engine:
             if da is not None and hasattr(da, "challenges"):
                 da.challenges.append(nch)
 
-    def _build_brain_grades(self, *,
-                            news_ctx,
-                            market_ctx,
-                            chart_analysis,
+    def _build_brain_grades(self, *, news_ctx, market_ctx, chart_analysis,
                             now: datetime) -> list:
-        """Translate brain contexts into BrainGrade objects for the gate.
-
-        Each brain produces a (direction, confidence, veto) triple by
-        rule:
-
-            * direction comes from `net_bias` / plan.direction
-            * confidence comes from the brain's own confidence-like
-              field
-            * veto = True when the brain explicitly disabled trading
-
-        The letter grade maps confidence to A+/A/B/C/F using the
-        thresholds in EngineConfig.
-        """
+        """Translate brain contexts into BrainGrade objects for the gate."""
         grades = []
-
-        # ---- ChartMind ---------------------------------------------
         plan = chart_analysis.plan
         cm_direction = getattr(plan, "direction", "neutral")
         cm_conf = float(getattr(plan, "confidence", 0.0))
@@ -906,64 +1127,42 @@ class Engine:
             name="ChartMind",
             direction=cm_direction,
             grade=self._grade_letter(cm_conf),
-            confidence=cm_conf,
-            veto=cm_veto,
-            veto_reason=cm_reason,
-            as_of=now,
-            notes=getattr(plan, "rationale", "")[:200],
+            confidence=cm_conf, veto=cm_veto, veto_reason=cm_reason,
+            as_of=now, notes=getattr(plan, "rationale", "")[:200],
         ))
-
-        # ---- NewsMind ----------------------------------------------
         if news_ctx is not None:
             nm_dir = getattr(news_ctx, "net_bias", "neutral")
             nm_conf = float(getattr(news_ctx, "confidence", 0.0))
             nm_veto = bool(getattr(news_ctx, "do_not_trade", False))
             nm_reason = getattr(news_ctx, "do_not_trade_reason", "")
             grades.append(self.BrainGrade(
-                name="NewsMind",
-                direction=nm_dir,
+                name="NewsMind", direction=nm_dir,
                 grade=self._grade_letter(nm_conf),
-                confidence=nm_conf,
-                veto=nm_veto,
-                veto_reason=nm_reason,
-                as_of=now,
-                notes=getattr(news_ctx, "summary_one_liner", "")[:200],
+                confidence=nm_conf, veto=nm_veto, veto_reason=nm_reason,
+                as_of=now, notes=getattr(news_ctx, "summary_one_liner", "")[:200],
             ))
-
-        # ---- MarketMind --------------------------------------------
         if market_ctx is not None:
             mm_dir = getattr(market_ctx, "net_bias", "neutral")
             mm_strength = float(getattr(market_ctx, "bias_strength", 0.0))
             mm_veto = bool(getattr(market_ctx, "halt_trading", False))
             mm_reason = getattr(market_ctx, "halt_reason", "")
             grades.append(self.BrainGrade(
-                name="MarketMind",
-                direction=mm_dir,
+                name="MarketMind", direction=mm_dir,
                 grade=self._grade_letter(mm_strength),
-                confidence=mm_strength,
-                veto=mm_veto,
-                veto_reason=mm_reason,
-                as_of=now,
-                notes=getattr(market_ctx, "summary_one_liner", "")[:200],
+                confidence=mm_strength, veto=mm_veto, veto_reason=mm_reason,
+                as_of=now, notes=getattr(market_ctx, "summary_one_liner", "")[:200],
             ))
-
         return grades
 
     def _grade_letter(self, confidence: float) -> str:
-        """Map [0..1] confidence to A+/A/B/C/F per EngineConfig."""
         c = self.config
-        if confidence >= c.grade_a_plus_threshold:
-            return "A+"
-        if confidence >= c.grade_a_threshold:
-            return "A"
-        if confidence >= c.grade_b_threshold:
-            return "B"
-        if confidence >= c.grade_c_threshold:
-            return "C"
+        if confidence >= c.grade_a_plus_threshold: return "A+"
+        if confidence >= c.grade_a_threshold: return "A"
+        if confidence >= c.grade_b_threshold: return "B"
+        if confidence >= c.grade_c_threshold: return "C"
         return "F"
 
     def _derive_action(self, *, gate_result, chart_analysis, news_ctx) -> str:
-        """Single-word action derived from gate result, with fallbacks."""
         if gate_result is not None:
             gate = getattr(gate_result, "gate", None)
             if gate is not None and getattr(gate, "pass_", False):
@@ -982,75 +1181,56 @@ class Engine:
 
 
 # ----------------------------------------------------------------------
-# Plain helpers — defensive extractors over duck-typed brain contexts.
+# Plain helpers.
 # ----------------------------------------------------------------------
 def _extract_regime(market_ctx) -> str:
-    if market_ctx is None:
-        return "unknown"
+    if market_ctx is None: return "unknown"
     nb = getattr(market_ctx, "net_bias", "neutral")
     strength = float(getattr(market_ctx, "bias_strength", 0.0))
-    if nb in ("long", "bullish") and strength >= 0.4:
-        return "trend_up"
-    if nb in ("short", "bearish") and strength >= 0.4:
-        return "trend_down"
-    if strength < 0.15:
-        return "range"
+    if nb in ("long", "bullish") and strength >= 0.4: return "trend_up"
+    if nb in ("short", "bearish") and strength >= 0.4: return "trend_down"
+    if strength < 0.15: return "range"
     return "volatile"
 
 
 def _extract_news_state(news_ctx) -> str:
-    if news_ctx is None:
-        return "calm"
+    if news_ctx is None: return "calm"
     ws = getattr(news_ctx, "window_state", None)
-    if ws is None:
-        return "calm"
-    if getattr(ws, "trading_halted", False):
-        return "blackout"
-    if getattr(ws, "in_pre_window", False):
-        return "pre_event"
-    if getattr(ws, "in_post_window", False):
-        return "post_event"
+    if ws is None: return "calm"
+    if getattr(ws, "trading_halted", False): return "blackout"
+    if getattr(ws, "in_pre_window", False): return "pre_event"
+    if getattr(ws, "in_post_window", False): return "post_event"
     return "calm"
 
 
 def _minutes_to_next_event(news_ctx, now: datetime) -> float:
-    if news_ctx is None:
-        return float("inf")
+    if news_ctx is None: return float("inf")
     nxt = getattr(news_ctx, "next_event", None)
-    if nxt is None:
-        return float("inf")
+    if nxt is None: return float("inf")
     sched = getattr(nxt, "scheduled_at", None)
-    if sched is None:
-        return float("inf")
-    delta = (sched - now).total_seconds() / 60.0
-    return max(0.0, delta)
+    if sched is None: return float("inf")
+    return max(0.0, (sched - now).total_seconds() / 60.0)
 
 
 def _extract_spread_pct(market_ctx, news_ctx) -> float:
-    """Best-effort spread percentile rank in [0, 1]."""
     for src in (market_ctx, news_ctx):
-        if src is None:
-            continue
+        if src is None: continue
         for attr in ("spread_percentile_rank", "spread_pct"):
             v = getattr(src, attr, None)
-            if isinstance(v, (int, float)):
-                return float(v)
+            if isinstance(v, (int, float)): return float(v)
     return 0.5
 
 
 def _extract_spread_pips(market_ctx, news_ctx) -> float:
     for src in (market_ctx, news_ctx):
-        if src is None:
-            continue
+        if src is None: continue
         v = getattr(src, "spread_pips", None)
-        if isinstance(v, (int, float)):
-            return float(v)
+        if isinstance(v, (int, float)): return float(v)
     return 0.5
 
 
 def _extract_upcoming_events(news_ctx) -> list:
-    if news_ctx is None:
-        return []
+    if news_ctx is None: return []
     out = []
     nxt = getattr(news_ctx, "next_event", None)
     if nxt is not None:
@@ -1067,18 +1247,15 @@ def _extract_current_price(bar, plan) -> float:
     if bar is not None:
         for attr in ("close", "Close"):
             v = getattr(bar, attr, None)
-            if isinstance(v, (int, float)):
-                return float(v)
+            if isinstance(v, (int, float)): return float(v)
         try:
-            v = bar["close"]
-            return float(v)
+            return float(bar["close"])
         except (TypeError, KeyError, IndexError):
             pass
     return float(getattr(plan, "entry_price", 0.0))
 
 
 def _avg_confidence(grades) -> float:
-    if not grades:
-        return 0.0
+    if not grades: return 0.0
     confs = [float(getattr(g, "confidence", 0.0)) for g in grades]
     return sum(confs) / len(confs) if confs else 0.0

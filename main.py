@@ -68,6 +68,27 @@ def _log(msg: str) -> None:
     print(f"[{_now_iso()}] {msg}", flush=True)
 
 
+def _last_known_price(engine) -> float:
+    """Best-effort 'current price' for the monitor when no live bar feed
+    is wired up.
+
+    Strategy: use the price recorded in any cached open context (the
+    monitor itself updates this every cycle). Returns 0.0 if there are
+    no open positions, which makes monitor_positions a no-op.
+    """
+    contexts = getattr(engine, "_open_contexts", {})
+    for ctx in contexts.values():
+        last = getattr(ctx, "last_price", 0.0)
+        if last and last > 0:
+            return float(last)
+        # Fall back to the entry price; the monitor's first call will
+        # then update last_price for the next cycle.
+        entry = getattr(ctx, "filled_price", 0.0)
+        if entry and entry > 0:
+            return float(entry)
+    return 0.0
+
+
 def main() -> int:
     from Engine import Engine, EngineConfig
 
@@ -171,13 +192,33 @@ def main() -> int:
                     one = (getattr(nctx, "summary_one_liner", "")
                            if nctx is not None else "")
                     line = f"action={action} | {one}"
+
             except Exception as e:
                 line = f"engine.step error: {e}"
+
+            # 2b. Monitor open positions (move stops, take partials,
+            # close on invalidation/time-decay). When a feed of bar
+            # prices is wired up, pass current_price + bar_reading;
+            # in the streaming-only NewsMind mode no positions are
+            # opened so this is a fast no-op.
+            mon_part = ""
+            try:
+                last_price = _last_known_price(engine)
+                if last_price > 0 and engine.gm is not None:
+                    mr = engine.monitor_positions(
+                        current_price=last_price, now_utc=now,
+                    )
+                    if mr is not None and (mr.actions_applied or mr.trades_recorded
+                                            or mr.positions_seen):
+                        mon_part = f" | mon[{mr.summary()}]"
+            except Exception as e:
+                mon_part = f" | mon_err[{type(e).__name__}]"
 
             cost_part = ""
             if engine._llm_cost is not None:
                 cost_part = f" | {engine._llm_cost.one_line_summary()}"
-            _log(f"items={len(items):>3} events={len(events):>2} | {line}{cost_part}")
+            _log(f"items={len(items):>3} events={len(events):>2} | "
+                 f"{line}{mon_part}{cost_part}")
 
             cycle += 1
 
@@ -189,6 +230,26 @@ def main() -> int:
                     except Exception:
                         pass
 
-            # 4) periodic morning briefing — useful for long-running
-            # deploys where the boot-time briefing scrolls off.
+            # 4) periodic morning briefing.
             if cycle % briefing_every == 0 and engine.snb is not None:
+                _log("--- SmartNoteBook briefing (periodic) ---")
+                for line in engine.briefing_console_string().splitlines():
+                    _log(f"  {line}")
+
+            # 5) responsive sleep — wakes within ~1s of SIGTERM.
+            for _ in range(interval):
+                if stop_flag["stop"]:
+                    break
+                time.sleep(1)
+    finally:
+        if nm is not None:
+            try:
+                nm.close()
+            except Exception:
+                pass
+        _log("State saved. Goodbye.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
