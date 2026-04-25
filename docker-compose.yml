@@ -19,22 +19,21 @@ services:
       # The actual key value MUST be provided via Hostinger UI
       # (Settings -> Environment Variables) or a sibling .env file —
       # never commit the real value to git.
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - LLM_MODEL=gpt-5
-      - ENABLE_LLM=auto                 # auto = on if OPENAI_API_KEY is set
-      - INJECTION_LANGUAGE=en           # "en" or "ar"
+      # The `:-` syntax means "default to empty string when unset" so
+      # the container boots in mechanical-only mode if no key is set.
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - LLM_MODEL=${LLM_MODEL:-gpt-5}
+      - ENABLE_LLM=${ENABLE_LLM:-auto}            # auto = on if OPENAI_API_KEY set
+      - INJECTION_LANGUAGE=${INJECTION_LANGUAGE:-en}
 
       # ---- OANDA (live data + broker) -----------------------------
       # Same posture as OPENAI_API_KEY — provided via Hostinger UI,
       # never committed to git. Use the practice account first.
-      - OANDA_API_TOKEN=${OANDA_API_TOKEN}
-      - OANDA_ACCOUNT_ID=${OANDA_ACCOUNT_ID}
-      - OANDA_ENVIRONMENT=practice      # "practice" or "live"
-      - OANDA_GRANULARITY=M15
-      - ENABLE_OANDA=auto               # auto = on if both vars set
+      - OANDA_API_TOKEN=${OANDA_API_TOKEN:-}
+      - OANDA_ACCOUNT_ID=${OANDA_ACCOUNT_ID:-}
+      - OANDA_ENVIRONMENT=${OANDA_ENVIRONMENT:-practice}
+      - OANDA_GRANULARITY=${OANDA_GRANULARITY:-M15}
+      - ENABLE_OANDA=${ENABLE_OANDA:-auto}        # auto = on if both vars set
 
       # ---- optional integrations ----------------------------------
-      # Telegram fills/closures notifications (GateMind):
-      # - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
-      # - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
-      # Twitter API credentials for RSSHub (
+ 
