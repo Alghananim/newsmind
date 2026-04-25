@@ -164,6 +164,12 @@ TESTS = [
                    min_rr=2.0,
                    halt_pause_days=7,
                    atr_surge_threshold=2.0)),
+
+    # T11: PRODUCTION_SAFE — all 12 audit-driven commandments applied
+    ("T11_production_safe", get_variant("production_safe")),
+
+    # T12: PRODUCTION_STRICT — A grade only, conservative caps
+    ("T12_production_strict", get_variant("production_strict")),
 ]
 
 
