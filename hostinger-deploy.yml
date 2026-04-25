@@ -54,6 +54,12 @@ services:
       - TELEGRAM_TOKEN=${TELEGRAM_TOKEN:-}
       - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
 
+      # ---- One-shot backtest mode --------------------------------
+      # Set RUN_BACKTEST=true and restart the container to run the
+      # 2-year EUR/USD backtest. Results print to docker logs.
+      # Unset and restart to resume normal live mode.
+      - RUN_BACKTEST=${RUN_BACKTEST:-false}
+
     volumes:
       - newsmind_state:/app/NewsMind/state
       - newsmind_repo:/app
@@ -86,17 +92,4 @@ services:
           cd /app && git pull --ff-only || echo "[bootstrap] pull failed, continuing with cached source"
         fi
         echo "[bootstrap] installing python deps..."
-        pip install --no-cache-dir -q -r /app/requirements.txt
-        echo "[bootstrap] handing off to main.py..."
-        exec python /app/main.py
-
-networks:
-  newsmind_net:
-    driver: bridge
-  rsshub_net:
-    external: true
-    name: rsshub-cs4k_default
-
-volumes:
-  newsmind_state:
-  newsmind_repo:
+     

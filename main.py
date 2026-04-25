@@ -96,7 +96,43 @@ def _last_known_price(engine, bar=None) -> float:
     return 0.0
 
 
+def _run_backtest_one_shot() -> int:
+    """One-shot backtest mode triggered by RUN_BACKTEST=true env var.
+
+    Runs scripts/run_backtest.py, captures its full output to docker
+    logs, then sleeps forever so the container stays alive (operator
+    can read results via Logs UI then unset the var and restart for
+    normal live mode).
+    """
+    _log("=== ONE-SHOT BACKTEST MODE (RUN_BACKTEST=true) ===")
+    _log("Will run /app/scripts/run_backtest.py and stream output below.")
+    _log("After completion, container sleeps so you can read logs in Hostinger UI.")
+    _log("To resume live mode: unset RUN_BACKTEST and restart container.")
+    _log("")
+
+    script_path = ROOT / "scripts" / "run_backtest.py"
+    if not script_path.exists():
+        _log(f"ERROR: {script_path} not found")
+        return 2
+
+    import subprocess
+    try:
+        rc = subprocess.call([sys.executable, str(script_path)])
+        _log(f"=== BACKTEST EXITED with code {rc} ===")
+    except Exception as e:
+        _log(f"ERROR running backtest: {e}")
+        rc = 3
+
+    # Sleep forever so container stays alive and logs remain readable.
+    _log("Sleeping; restart container to resume live mode.")
+    while True:
+        time.sleep(3600)
+
+
 def main() -> int:
+    if os.environ.get("RUN_BACKTEST", "").lower() in ("1", "true", "yes"):
+        return _run_backtest_one_shot()
+
     from Engine import Engine, EngineConfig
 
     interval = int(os.environ.get("POLL_INTERVAL_SEC", "60"))
@@ -247,44 +283,4 @@ def main() -> int:
                         current_price=last_price, bar_reading=bar, now_utc=now,
                     )
                     if mr is not None and (mr.actions_applied or mr.trades_recorded
-                                            or mr.positions_seen):
-                        mon_part = f" | mon[{mr.summary()}]"
-            except Exception as e:
-                mon_part = f" | mon_err[{type(e).__name__}]"
-
-            cost_part = ""
-            if engine._llm_cost is not None:
-                cost_part = f" | {engine._llm_cost.one_line_summary()}"
-            _log(f"items={len(items):>3} events={len(events):>2} | "
-                 f"{line}{mon_part}{cost_part}")
-
-            cycle += 1
-
-            if cycle % checkpoint_every == 0:
-                if nm is not None:
-                    try:
-                        nm.save_state()
-                    except Exception:
-                        pass
-
-            if cycle % briefing_every == 0 and engine.snb is not None:
-                _log("--- SmartNoteBook briefing (periodic) ---")
-                for line in engine.briefing_console_string().splitlines():
-                    _log(f"  {line}")
-
-            for _ in range(interval):
-                if stop_flag["stop"]:
-                    break
-                time.sleep(1)
-    finally:
-        if nm is not None:
-            try:
-                nm.close()
-            except Exception:
-                pass
-        _log("State saved. Goodbye.")
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+   
