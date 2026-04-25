@@ -166,14 +166,21 @@ def main() -> int:
             and bool(os.environ.get("OANDA_ACCOUNT_ID")))
     )
 
-    # Per-pair production-tuned variant filter. Resolution order:
-    #   1. VARIANT_FILTER env var (explicit override, applies to any pair)
-    #   2. PRODUCTION_DEFAULTS dict (real-OANDA-tuned per pair)
-    #   3. "" (no filter — raw ChartMind output)
+    # Per-pair production-tuned variant filter. RESET TO TRUTH after
+    # the 10-test isolation diagnostic on real OANDA over 2 years.
+    # Earlier "champions" (trail_r25_risk15 +61%, jp_champion +105%)
+    # were Q1 2024 artifacts — see AUDIT_VERDICT.md and DIAGNOSTIC.md.
+    #
+    # Real per-pair winners over the FULL 2-year OANDA window:
+    #   EUR/USD: kill_asia  -> +4.58%  (PF 1.10, +0.069R, 135 trades)
+    #   USD/JPY: kill_asia  -> +1.09%  (PF 1.02, ~breakeven, 575 trd)
+    #   GBP/USD: NO ROBUST VARIANT FOUND — every variant lost over 2y.
+    #            Best was kill_asia at -15% (regime-specific).
+    #            DO NOT TRADE this pair until edge is found.
     PRODUCTION_DEFAULTS = {
-        "EUR/USD": "trail_r25_risk15",      # +61.46% over 2y, PF 1.62
-        "USD/JPY": "jp_champion_tight_trail",  # +105.43%, PF 1.38
-        "GBP/USD": "gb_ultra_risk15",       # +8.63%, no halt, PF 1.30
+        "EUR/USD": "kill_asia",   # +4.58% over 2y, PF 1.10 (real OANDA)
+        "USD/JPY": "kill_asia",   # +1.09% over 2y, PF 1.02 (real OANDA)
+        # "GBP/USD": INTENTIONALLY EXCLUDED — no variant survived 2-yr WF
     }
     variant_name = (os.environ.get("VARIANT_FILTER", "").strip()
                     or PRODUCTION_DEFAULTS.get(pair, ""))
