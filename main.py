@@ -166,6 +166,13 @@ def main() -> int:
             and bool(os.environ.get("OANDA_ACCOUNT_ID")))
     )
 
+    # Pair-mode safety override: monitoring mode never sends real orders
+    # (forces PaperBroker). Set BEFORE EngineConfig construction so the
+    # OANDA broker is never wired for monitoring/paper-only pairs.
+    if 'pair_mode' in dir() and pair_mode == "monitoring":
+        enable_oanda = False
+        _log("FORCED enable_oanda=False for monitoring mode (PaperBroker only)")
+
     # Per-pair production-tuned variant filter. RESET TO TRUTH after
     # the 10-test isolation diagnostic on real OANDA over 2 years.
     # Earlier "champions" (trail_r25_risk15 +61%, jp_champion +105%)
@@ -177,25 +184,40 @@ def main() -> int:
     #   GBP/USD: NO ROBUST VARIANT FOUND — every variant lost over 2y.
     #            Best was kill_asia at -15% (regime-specific).
     #            DO NOT TRADE this pair until edge is found.
+    # Per-pair LIVE-MODE status. Three tiers per CYCLE-5 decision:
+    #   "production"  - real money trades (full risk)
+    #   "monitoring"  - paper trades, signals logged only (no real orders)
+    #   "disabled"    - no trading at all (skip cycle entirely)
+    #
+    # CYCLE-3 evidence on real OANDA over 2 years:
+    #   EUR/USD kill_asia: +5.51%, PF 1.12, 132 trades  (PROVEN PROFITABLE)
+    #   USD/JPY kill_asia: +1.69%, PF 1.02, 576 trades  (MARGINAL — paper only)
+    #   GBP/USD kill_asia: -14.20%, PF 0.52              (LOSING — disabled)
+    #
+    # Grade filtering REGRESSED all 3 pairs (see DIAGNOSTIC.md).
+    # ChartMind v1 grade calibration is inverted; until recalibrated,
+    # plain kill_asia is the strongest known config.
+    PAIR_STATUS = {
+        "EUR/USD": "production",   # +5.51%/2y proven — live trading OK
+        "USD/JPY": "monitoring",   # +1.69%/2y marginal — paper only
+        "GBP/USD": "disabled",     # -14.20%/2y losing — research-only
+    }
+
     PRODUCTION_DEFAULTS = {
-        # PER-PAIR BEST from real-OANDA CYCLE-3 evidence (3 pairs × 4 variants):
-        #
-        # EUR/USD kill_asia: +5.51% / 2y, PF 1.12, 132 trades  (PROVEN)
-        # USD/JPY kill_asia: +1.69% / 2y, PF 1.02, 576 trades  (PROVEN)
-        # GBP/USD kill_asia: -14.20% / 2y (best of bad lot)    (RESEARCH)
-        #
-        # Grade filtering REGRESSED all 3 pairs (ChartMind v1 grade
-        # calibration is inverted — see DIAGNOSTIC.md). Until ChartMind
-        # is recalibrated, simple kill_asia is the production winner.
-        #
-        # GBP/USD is included for completeness but should be traded
-        # with reduced risk (env: VARIANT_FILTER=kill_asia +
-        # OANDA_GBP_RISK_OVERRIDE=0.1). All variants currently lose
-        # on GBP — this is a research candidate, not a profit pair.
         "EUR/USD": "kill_asia",
         "USD/JPY": "kill_asia",
-        "GBP/USD": "kill_asia",   # research — losing pair until improved
+        "GBP/USD": "kill_asia",   # logged but disabled in live
     }
+
+    # Resolve current pair's mode (env override always wins)
+    pair_mode = os.environ.get("PAIR_MODE", "").strip() or PAIR_STATUS.get(pair, "disabled")
+    if pair_mode == "disabled":
+        _log(f"PAIR_MODE = disabled for {pair}. Exiting cleanly. "
+             f"Set PAIR_MODE=production or monitoring to override.")
+        return 0
+    if pair_mode == "monitoring":
+        _log(f"PAIR_MODE = monitoring for {pair}. Engine runs in PAPER mode "
+             f"(signals logged, no real broker orders).")
     variant_name = (os.environ.get("VARIANT_FILTER", "").strip()
                     or PRODUCTION_DEFAULTS.get(pair, ""))
 
