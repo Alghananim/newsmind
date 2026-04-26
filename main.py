@@ -178,12 +178,23 @@ def main() -> int:
     #            Best was kill_asia at -15% (regime-specific).
     #            DO NOT TRADE this pair until edge is found.
     PRODUCTION_DEFAULTS = {
-        # USER POLICY: only A and A+ grades enter (B = wait, C = never).
-        # The "production" variant enforces this strictly.
-        # All 12 audit-driven commandments applied.
-        "EUR/USD": "production",
-        "USD/JPY": "production",
-        # "GBP/USD": INTENTIONALLY EXCLUDED — no variant survived 2-yr WF
+        # PER-PAIR BEST from real-OANDA CYCLE-3 evidence (3 pairs × 4 variants):
+        #
+        # EUR/USD kill_asia: +5.51% / 2y, PF 1.12, 132 trades  (PROVEN)
+        # USD/JPY kill_asia: +1.69% / 2y, PF 1.02, 576 trades  (PROVEN)
+        # GBP/USD kill_asia: -14.20% / 2y (best of bad lot)    (RESEARCH)
+        #
+        # Grade filtering REGRESSED all 3 pairs (ChartMind v1 grade
+        # calibration is inverted — see DIAGNOSTIC.md). Until ChartMind
+        # is recalibrated, simple kill_asia is the production winner.
+        #
+        # GBP/USD is included for completeness but should be traded
+        # with reduced risk (env: VARIANT_FILTER=kill_asia +
+        # OANDA_GBP_RISK_OVERRIDE=0.1). All variants currently lose
+        # on GBP — this is a research candidate, not a profit pair.
+        "EUR/USD": "kill_asia",
+        "USD/JPY": "kill_asia",
+        "GBP/USD": "kill_asia",   # research — losing pair until improved
     }
     variant_name = (os.environ.get("VARIANT_FILTER", "").strip()
                     or PRODUCTION_DEFAULTS.get(pair, ""))
