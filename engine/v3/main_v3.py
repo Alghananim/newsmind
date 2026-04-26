@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""main_v3.py — Engine V3 minimal live loop."""
+"""main_v3.py — Engine V3 live loop with OpenAI integration."""
 from __future__ import annotations
 import os
 import sys
@@ -15,10 +15,12 @@ logging.basicConfig(
 log = logging.getLogger("main_v3")
 
 log.info("=" * 80)
-log.info("Engine V3 — 5-brain integrated trading system")
+log.info("Engine V3 — 5-brain integrated trading system + OpenAI layer")
 log.info("=" * 80)
 
 sys.path.insert(0, "/app")
+
+# Brain imports
 try:
     from engine.v3 import EngineV3, ValidationConfig, ABSOLUTE_MAX_RISK_PCT
     log.info("[OK] Engine V3 imports successful")
@@ -26,6 +28,20 @@ except Exception as e:
     log.error(f"[FATAL] Engine V3 import failed: {e}")
     sys.exit(1)
 
+# LLM layer (optional, default-deny on failure)
+try:
+    from llm import (
+        review_brain_outputs, LLM_AVAILABLE, LLM_DISABLED_REASON,
+    )
+    from llm.openai_brain import health_check as llm_health
+    log.info(f"[OK] LLM module imported (available={LLM_AVAILABLE})")
+except Exception as e:
+    log.warning(f"[WARN] LLM module not available: {e}")
+    LLM_AVAILABLE = False
+    review_brain_outputs = None
+    llm_health = None
+
+# Config
 cfg = ValidationConfig()
 poll_interval = int(os.environ.get("POLL_INTERVAL_SEC", "60"))
 
@@ -40,8 +56,8 @@ if not (os.environ.get("OANDA_API_TOKEN") and os.environ.get("OANDA_ACCOUNT_ID")
     log.warning("[WARN] OANDA credentials missing — IDLE mode (no broker)")
 
 log.info(f"Poll interval: {poll_interval}s")
-log.info("=" * 80)
 
+# Engine V3 setup
 try:
     engine = EngineV3(cfg=cfg, broker=None, account_balance=10000.0)
     log.info("[OK] EngineV3 instantiated; SmartNoteBook ready")
@@ -50,12 +66,32 @@ except Exception as e:
     import traceback; traceback.print_exc()
     sys.exit(1)
 
+# LLM connectivity check at boot
+if LLM_AVAILABLE and llm_health:
+    log.info("[llm] running connectivity check...")
+    try:
+        h = llm_health()
+        if h.get("available"):
+            log.info(f"[llm] OK — model={h.get('model')} latency={h.get('sample_response','')[:60]}")
+        else:
+            log.warning(f"[llm] unavailable: {h.get('reason')}")
+    except Exception as e:
+        log.warning(f"[llm] health check threw: {e}")
+else:
+    log.info(f"[llm] disabled at boot (reason: {LLM_DISABLED_REASON if LLM_AVAILABLE is False else 'no_module'})")
+
+log.info("=" * 80)
 log.info("[loop] entering idle heartbeat loop")
+log.info("=" * 80)
+
 cycle = 0
 try:
     while True:
         cycle += 1
-        log.info(f"[heartbeat] cycle={cycle} ts={datetime.now(timezone.utc).isoformat()}")
+        ts = datetime.now(timezone.utc).isoformat(timespec='seconds')
+        log.info(f"[heartbeat] cycle={cycle} ts={ts}")
+        # Future: pull OANDA candles → brain analysis → LLM review → GateMind → execute
+        # For now: idle. LLM layer is wired and ready.
         time.sleep(poll_interval)
 except KeyboardInterrupt:
     log.info("[shutdown]")
