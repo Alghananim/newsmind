@@ -726,15 +726,23 @@ class BacktestRunner:
     # Helpers.
     # ==================================================================
     def _grade_risk_multiplier(self, grade: str) -> float:
-        """Return per-grade risk fraction. Defaults from audit:
-        A+=1.5, A=1.0, B=0.5, C=0.0 (no trade).
-        Variant.grade_risk_multipliers can override.
+        """Return per-grade risk fraction.
+
+        Behaviour:
+          1. If variant explicitly sets grade_risk_multipliers, use them.
+             Missing grades default to 1.0 (legacy: no scaling).
+          2. Else if variant.min_grade != "C", apply audit defaults
+             (A+=1.5, A=1.0, B=0.5) — variant opted-in to grade gating.
+          3. Else (legacy variants like kill_asia): multiplier = 1.0
+             for every grade. Don't silently reject C-grade plans.
         """
         if self.variant.grade_risk_multipliers:
             d = dict(self.variant.grade_risk_multipliers)
-            return float(d.get(grade, 0.0))
-        defaults = {"A+": 1.5, "A": 1.0, "B": 0.5, "C": 0.0}
-        return defaults.get(grade, 0.0)
+            return float(d.get(grade, 1.0))
+        if self.variant.min_grade != "C":
+            defaults = {"A+": 1.5, "A": 1.0, "B": 0.5, "C": 0.0}
+            return defaults.get(grade, 0.0)
+        return 1.0  # legacy: no grade scaling
 
     @staticmethod
     def _derive_grade_from_confidence(c: float) -> str:
