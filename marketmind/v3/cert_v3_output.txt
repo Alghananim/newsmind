@@ -1,0 +1,163 @@
+====================================================================================================
+MarketMind V3 — Certification Test (12 سيناريو)
+====================================================================================================
+
+┌─[01] trend_clean_aligned  ✓ PASS
+│ INPUT      : pair=EUR/USD  bars=80 news=yes:allow
+│ REGIME     : got=trend  direction=bullish  strength=1.00  expect_regime=trend  ✓
+│ BIASES     : dollar=neutral  counter=neutral  risk=risk_on  news_align=aligned
+│ MARKET     : vol=normal  liq=good  spread=tight  corr=normal
+│ DATA Q     : good
+│ GRADE      : got=A+  expect=[A..A+]  ✓
+│ PERMISSION : got=allow  expect=allow  ✓
+│ ENVIRONMENT: tradable
+│ WARNINGS   : ()
+│ REASON     : regime_diag={'adx': 100.0, 'atr': 0.000277, 'atr_p95': 0.000274, 'whipsaws_10': 0, 'last_range_x_atr': 1.08}|dxy=down/0.398|risk=risk_on/0.85|corr_pairs={'EURUSD_vs_USDJPY': 0.008}|a_plus_all_conditio
+└─ correct? PASS
+
+┌─[02] range_no_news  ✓ PASS
+│ INPUT      : pair=EUR/USD  bars=80 news=yes:allow
+│ REGIME     : got=range  direction=neutral  strength=0.00  expect_regime=range  ✓
+│ BIASES     : dollar=neutral  counter=neutral  risk=unclear  news_align=no_clear_signal
+│ MARKET     : vol=normal  liq=good  spread=tight  corr=broken
+│ DATA Q     : good
+│ GRADE      : got=B  expect=[B..B]  ✓
+│ PERMISSION : got=wait  expect=wait  ✓
+│ ENVIRONMENT: wait
+│ WARNINGS   : ('EURUSD_vs_USDJPY=1.00_outside_-1.0..0.1',)
+│ REASON     : regime_diag={'adx': 16.7, 'atr': 0.00016, 'atr_p95': 0.000169, 'whipsaws_10': 1, 'last_range_x_atr': 1.24}|dxy=flat/0.492|risk=unclear/0.0|corr_pairs={'EURUSD_vs_USDJPY': 1.0}|critical_warnings:1
+└─ correct? PASS
+
+┌─[03] choppy_dangerous  ✓ PASS
+│ INPUT      : pair=EUR/USD  bars=80 news=none
+│ REGIME     : got=choppy  direction=bearish  strength=0.00  expect_regime=choppy  ✓
+│ BIASES     : dollar=neutral  counter=neutral  risk=unclear  news_align=no_news
+│ MARKET     : vol=normal  liq=good  spread=tight  corr=broken
+│ DATA Q     : good
+│ GRADE      : got=C  expect=[C..C]  ✓
+│ PERMISSION : got=wait  expect=wait  ✓
+│ ENVIRONMENT: wait
+│ WARNINGS   : ('EURUSD_vs_USDJPY=1.00_outside_-1.0..0.1',)
+│ REASON     : regime_diag={'adx': 0.0, 'atr': 0.001318, 'atr_p95': 0.001318, 'whipsaws_10': 9, 'last_range_x_atr': 1.38}|dxy=flat/0.5|risk=unclear/0.0|corr_pairs={'EURUSD_vs_USDJPY': 1.0}|critical_warnings:2
+└─ correct? PASS
+
+┌─[04] pre_news_blocked  ✓ PASS
+│ INPUT      : pair=EUR/USD  bars=80 news=yes:block
+│ REGIME     : got=trend  direction=bullish  strength=1.00  expect_regime=any  ✓
+│ BIASES     : dollar=neutral  counter=neutral  risk=unclear  news_align=blocked_by_news
+│ MARKET     : vol=normal  liq=good  spread=tight  corr=normal
+│ DATA Q     : good
+│ GRADE      : got=C  expect=[C..C]  ✓
+│ PERMISSION : got=block  expect=block  ✓
+│ ENVIRONMENT: avoid
+│ WARNINGS   : ()
+│ REASON     : regime_diag={'adx': 100.0, 'atr': 0.000243, 'atr_p95': 0.00029, 'whipsaws_10': 0, 'last_range_x_atr': 0.73}|dxy=down/0.411|risk=unclear/0.0|corr_pairs={'EURUSD_vs_USDJPY': 0.056}|hard_block:news_block
+└─ correct? PASS
+
+┌─[05] post_news_wait  ✓ PASS
+│ INPUT      : pair=EUR/USD  bars=80 news=yes:wait
+│ REGIME     : got=trend  direction=bullish  strength=1.00  expect_regime=any  ✓
+│ BIASES     : dollar=neutral  counter=neutral  risk=unclear  news_align=news_caution
+│ MARKET     : vol=normal  liq=good  spread=tight  corr=normal
+│ DATA Q     : good
+│ GRADE      : got=B  expect=[C..B]  ✓
+│ PERMISSION : got=wait  expect=wait  ✓
+│ ENVIRONMENT: tradable
+│ WARNINGS   : ()
+│ REASON     : regime_diag={'adx': 100.0, 'atr': 0.000243, 'atr_p95': 0.00029, 'whipsaws_10': 0, 'last_range_x_atr': 0.73}|dxy=down/0.417|risk=unclear/0.0|corr_pairs={'EURUSD_vs_USDJPY': -0.035}|a_grade_strong_with_
+└─ correct? PASS
+
+┌─[06] riskoff_usdjpy_rising_dangerous  ✓ PASS
+│ INPUT      : pair=USD/JPY  bars=80 news=yes:wait
+│ REGIME     : got=trend  direction=bullish  strength=1.00  expect_regime=any  ✓
+│ BIASES     : dollar=neutral  counter=strong  risk=risk_off  news_align=news_caution
+│ MARKET     : vol=normal  liq=good  spread=tight  corr=normal
+│ DATA Q     : good
+│ GRADE      : got=C  expect=[C..C]  ✓
+│ PERMISSION : got=wait  expect=wait  ✓
+│ ENVIRONMENT: wait
+│ WARNINGS   : ('risk_off_but_usdjpy_up:dangerous',)
+│ REASON     : regime_diag={'adx': 100.0, 'atr': 0.044059, 'atr_p95': 0.046745, 'whipsaws_10': 0, 'last_range_x_atr': 0.57}|dxy=up/0.562|risk=risk_off/0.85|corr_pairs={'EURUSD_vs_USDJPY': 0.095}|hard_wait:risk_off_j
+└─ correct? PASS
+
+┌─[07] dxy_correlation_break  ✓ PASS
+│ INPUT      : pair=EUR/USD  bars=80 news=none
+│ REGIME     : got=trend  direction=bullish  strength=1.00  expect_regime=any  ✓
+│ BIASES     : dollar=neutral  counter=neutral  risk=unclear  news_align=no_news
+│ MARKET     : vol=normal  liq=good  spread=tight  corr=normal
+│ DATA Q     : good
+│ GRADE      : got=C  expect=[C..B]  ✓
+│ PERMISSION : got=wait  expect=wait  ✓
+│ ENVIRONMENT: wait
+│ WARNINGS   : ('eurusd_up_with_usdjpy_up:inconsistent_usd',)
+│ REASON     : regime_diag={'adx': 100.0, 'atr': 0.00044, 'atr_p95': 0.000441, 'whipsaws_10': 0, 'last_range_x_atr': 1.01}|dxy=down/0.382|risk=unclear/1.0|corr_pairs={'EURUSD_vs_USDJPY': 0.116}|hard_wait:coincident_
+└─ correct? PASS
+
+┌─[08] spread_dangerous  ✓ PASS
+│ INPUT      : pair=EUR/USD  bars=80 news=none
+│ REGIME     : got=choppy  direction=neutral  strength=0.00  expect_regime=any  ✓
+│ BIASES     : dollar=neutral  counter=neutral  risk=unclear  news_align=no_news
+│ MARKET     : vol=normal  liq=good  spread=dangerous  corr=normal
+│ DATA Q     : partial
+│ GRADE      : got=C  expect=[C..C]  ✓
+│ PERMISSION : got=block  expect=block  ✓
+│ ENVIRONMENT: avoid
+│ WARNINGS   : ('wide_spread:4.00pips_vs_0.54avg',)
+│ REASON     : regime_diag={'adx': 14.3, 'atr': 0.000192, 'atr_p95': 0.000211, 'whipsaws_10': 7, 'last_range_x_atr': 0.74}|dxy=flat/0.49|risk=unclear/0.0|corr_pairs={'EURUSD_vs_USDJPY': -0.058}|hard_block:spread_dan
+└─ correct? PASS
+
+┌─[09] volatility_spike  ✓ PASS
+│ INPUT      : pair=EUR/USD  bars=80 news=none
+│ REGIME     : got=high_volatility  direction=bullish  strength=0.00  expect_regime=high_volatility  ✓
+│ BIASES     : dollar=weak  counter=strong  risk=unclear  news_align=no_news
+│ MARKET     : vol=extreme  liq=good  spread=wide  corr=normal
+│ DATA Q     : degraded
+│ GRADE      : got=C  expect=[C..C]  ✓
+│ PERMISSION : got=wait  expect=wait  ✓
+│ ENVIRONMENT: wait
+│ WARNINGS   : ('wide_spread:2.50pips_vs_0.53avg', 'atr_extreme:2.6x_p95')
+│ REASON     : regime_diag={'adx': 87.9, 'atr': 0.00056, 'atr_p95': 0.000211, 'whipsaws_10': 6, 'last_range_x_atr': 9.46}|dxy=down/0.306|risk=unclear/0.0|corr_pairs={'EURUSD_vs_USDJPY': -0.169}|hard_wait:volatility_
+└─ correct? PASS
+
+┌─[10] data_missing_short_history  ✓ PASS
+│ INPUT      : pair=EUR/USD  bars=3 news=none
+│ REGIME     : got=unclear  direction=unclear  strength=0.00  expect_regime=any  ✓
+│ BIASES     : dollar=neutral  counter=neutral  risk=unclear  news_align=no_news
+│ MARKET     : vol=normal  liq=good  spread=tight  corr=unavailable
+│ DATA Q     : missing
+│ GRADE      : got=C  expect=[C..C]  ✓
+│ PERMISSION : got=wait  expect=wait  ✓
+│ ENVIRONMENT: wait
+│ WARNINGS   : ('insufficient_bars',)
+│ REASON     : regime_diag={'reason': 'insufficient_history'}|dxy=down/0.433|risk=unclear/0.0|corr_pairs={}|hard_wait:data_missing
+└─ correct? PASS
+
+┌─[11] low_liquidity_session  ✓ PASS
+│ INPUT      : pair=EUR/USD  bars=80 news=none
+│ REGIME     : got=choppy  direction=neutral  strength=0.00  expect_regime=any  ✓
+│ BIASES     : dollar=neutral  counter=neutral  risk=unclear  news_align=no_news
+│ MARKET     : vol=normal  liq=poor  spread=tight  corr=normal
+│ DATA Q     : partial
+│ GRADE      : got=B  expect=[C..B]  ✓
+│ PERMISSION : got=wait  expect=wait  ✓
+│ ENVIRONMENT: wait
+│ WARNINGS   : ('low_volume:10/10_bars_zero',)
+│ REASON     : regime_diag={'adx': 14.3, 'atr': 0.000192, 'atr_p95': 0.000211, 'whipsaws_10': 7, 'last_range_x_atr': 0.74}|dxy=flat/0.49|risk=unclear/0.0|corr_pairs={'EURUSD_vs_USDJPY': -0.058}|critical_warnings:1
+└─ correct? PASS
+
+┌─[12] unexplained_gaps  ✓ PASS
+│ INPUT      : pair=EUR/USD  bars=80 news=none
+│ REGIME     : got=high_volatility  direction=neutral  strength=0.00  expect_regime=any  ✓
+│ BIASES     : dollar=neutral  counter=neutral  risk=unclear  news_align=no_news
+│ MARKET     : vol=extreme  liq=good  spread=tight  corr=normal
+│ DATA Q     : degraded
+│ GRADE      : got=C  expect=[C..C]  ✓
+│ PERMISSION : got=wait  expect=wait  ✓
+│ ENVIRONMENT: wait
+│ WARNINGS   : ('unexplained_gaps:3', 'atr_extreme:15.5x_p95')
+│ REASON     : regime_diag={'adx': 0.1, 'atr': 0.003314, 'atr_p95': 0.000214, 'whipsaws_10': 6, 'last_range_x_atr': 0.04}|dxy=flat/0.49|risk=unclear/0.0|corr_pairs={'EURUSD_vs_USDJPY': -0.129}|hard_wait:volatility_e
+└─ correct? PASS
+
+====================================================================================================
+FINAL: 12/12 PASSED  (100%)
+====================================================================================================

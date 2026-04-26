@@ -1,0 +1,135 @@
+====================================================================================================
+GateMind — BYPASS Audit (18 محاولة لاكتشاف ثغرة)
+====================================================================================================
+Each test deliberately tries to find a path that allows ENTER when it shouldn't.
+
+
+[01] B1_market_block_with_news_allow  ✓ PASS
+  description: market block should not be bypassed by news/chart allow
+  decision=block (expected_in=['wait', 'block'])
+  blocking=['market_block:fake_breakout', 'market_grade_C']
+  warnings=[]
+  reason=BLOCK: market_block:fake_breakout | market_grade_C | alignment_blocked:blocked_by=['market']
+
+[02] B2_all_allow_one_B  ✓ PASS
+  description: B grade should never enter even if permission is allow
+  decision=wait (expected_in=['wait', 'block'])
+  blocking=[]
+  warnings=['news_grade_B']
+  reason=WAIT: news_grade_B
+
+[03] B3_aligned_outside_window  ✓ PASS
+  description: outside session must block even with perfect alignment
+  decision=block (expected_in=['wait', 'block'])
+  blocking=['session_outside:ny_time=02:00 not_in_[(3, 5), (8, 12)]']
+  warnings=[]
+  reason=BLOCK: session_outside:ny_time=02:00 not_in_[(3, 5), (8, 12)]
+
+[04] B4_disabled_pair_perfect_setup  ✓ PASS
+  description: disabled pair must block regardless of brain quality
+  decision=block (expected_in=['wait', 'block'])
+  blocking=['execution_disabled_pair:pair_GBP/USD_disabled']
+  warnings=[]
+  reason=BLOCK: execution_disabled_pair:pair_GBP/USD_disabled
+
+[05] B5_monitoring_pair_live_attempt  ✓ PASS
+  description: monitoring pair must block live trades
+  decision=block (expected_in=['wait', 'block'])
+  blocking=['execution_monitoring_pair_live_blocked:pair_monitoring_cannot_go_live']
+  warnings=[]
+  reason=BLOCK: execution_monitoring_pair_live_blocked:pair_monitoring_cannot_go_live
+
+[06] B6_confidence_at_exact_threshold  ✓ PASS
+  description: confidence == 0.6 should pass (boundary check)
+  decision=enter (expected_in=['enter', 'wait'])
+  blocking=[]
+  warnings=[]
+  reason=ENTER: aligned/buy all_grades_top conf=0.6 rr=2.0
+
+[07] B7_confidence_just_below_threshold  ✓ PASS
+  description: confidence < 0.6 must wait
+  decision=wait (expected_in=['wait', 'block'])
+  blocking=[]
+  warnings=['low_confidence:0.59<0.6']
+  reason=WAIT: low_confidence:0.59<0.6
+
+[08] B8_one_unclear_direction  ✓ PASS
+  description: unclear direction with 2 bullish should still enter (acceptable)
+  decision=enter (expected_in=['enter', 'wait'])
+  blocking=[]
+  warnings=[]
+  reason=ENTER: aligned/buy all_grades_top conf=0.867 rr=2.0
+
+[09] B9_two_directions_one_neutral  ✓ PASS
+  description: bullish + bearish = conflict → block
+  decision=block (expected_in=['block'])
+  blocking=["alignment_conflicting:directions=['bullish', 'bearish', 'neutral']"]
+  warnings=[]
+  reason=BLOCK: alignment_conflicting:directions=['bullish', 'bearish', 'neutral']
+
+[10] B10_stop_just_above_tight_threshold  ✓ PASS
+  description: stop at 0.31 ATR should pass (boundary)
+  decision=enter (expected_in=['enter', 'wait', 'block'])
+  blocking=[]
+  warnings=[]
+  reason=ENTER: aligned/buy all_grades_top conf=0.9 rr=9.68
+
+[11] B11_rr_just_above_minimum  ✓ PASS
+  description: R/R at 1.0 should be marginal/wait
+  decision=wait (expected_in=['wait'])
+  blocking=[]
+  warnings=['rr_marginal']
+  reason=WAIT: rr_marginal
+
+[12] B12_position_open_different_pair  ✓ PASS
+  description: position in OTHER pair should not block this pair
+  decision=enter (expected_in=['enter', 'wait', 'block'])
+  blocking=[]
+  warnings=[]
+  reason=ENTER: aligned/buy all_grades_top conf=0.9 rr=2.0
+
+[13] B13_daily_loss_just_under_limit  ✓ PASS
+  description: daily loss < limit should pass
+  decision=enter (expected_in=['enter', 'wait', 'block'])
+  blocking=[]
+  warnings=[]
+  reason=ENTER: aligned/buy all_grades_top conf=0.9 rr=2.0
+
+[14] B14_trades_today_equal_limit  ✓ PASS
+  description: trades_today == limit must block
+  decision=block (expected_in=['block'])
+  blocking=['state_blocked_by_trade_limit:trades_today=10>=10', 'daily_trade_limit_hit']
+  warnings=[]
+  reason=BLOCK: state_blocked_by_trade_limit:trades_today=10>=10 | daily_trade_limit_hit
+
+[15] B15_direction_inconsistency_critical  ✓ PASS
+  description: directions conflicting → critical contradiction → block
+  decision=block (expected_in=['block'])
+  blocking=["alignment_conflicting:directions=['bullish', 'bearish', 'bullish']"]
+  warnings=[]
+  reason=BLOCK: alignment_conflicting:directions=['bullish', 'bearish', 'bullish']
+
+[16] B16_one_brain_none  ✓ PASS
+  description: missing brain → block
+  decision=block (expected_in=['block', 'wait'])
+  blocking=['missing_brain_input', 'news_gate_block:no_news_input']
+  warnings=[]
+  reason=BLOCK: missing_brain_input | news_gate_block:no_news_input
+
+[17] B17_all_brains_none  ✓ PASS
+  description: all brains None → block
+  decision=block (expected_in=['block', 'wait'])
+  blocking=['missing_brain_input', 'news_gate_block:no_news_input']
+  warnings=[]
+  reason=BLOCK: missing_brain_input | news_gate_block:no_news_input
+
+[18] B18_state_none  ✓ PASS
+  description: state None → block
+  decision=block (expected_in=['block', 'wait'])
+  blocking=['execution_broker_unsafe:no_state']
+  warnings=[]
+  reason=BLOCK: execution_broker_unsafe:no_state
+
+====================================================================================================
+FINAL: 18/18 PASSED
+====================================================================================================

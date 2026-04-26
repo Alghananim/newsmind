@@ -1,0 +1,55 @@
+====================================================================================================
+GateMind — Calibration Audit
+====================================================================================================
+[PASS] 01_all_A_plus_aligned_buy
+   expected: enter (substr='')
+   got     : enter/buy  reason=ENTER: aligned/buy all_grades_top conf=0.9 rr=2.0
+[PASS] 02_all_A_aligned
+   expected: enter (substr='')
+   got     : enter/buy  reason=ENTER: aligned/buy all_grades_top conf=0.8 rr=2.0
+[PASS] 03_news_B_waits
+   expected: wait (substr='news_grade_B')
+   got     : wait/none  reason=WAIT: news_grade_B | news_wait | alignment_partial
+[PASS] 04_market_B_waits
+   expected: wait (substr='market_grade_B')
+   got     : wait/none  reason=WAIT: market_grade_B | market_wait | alignment_partial
+[PASS] 05_chart_B_waits
+   expected: wait (substr='chart_grade_B')
+   got     : wait/none  reason=WAIT: chart_grade_B | chart_wait | alignment_partial
+[PASS] 06_news_C_blocks
+   expected: block (substr='news_grade_C')
+   got     : block/none  reason=BLOCK: news_block: | news_grade_C | alignment_blocked:blocked_by=['news']
+[PASS] 07_market_C_blocks
+   expected: block (substr='market_grade_C')
+   got     : block/none  reason=BLOCK: market_block: | market_grade_C | alignment_blocked:blocked_by=['market']
+[PASS] 08_chart_C_blocks
+   expected: block (substr='chart_grade_C')
+   got     : block/none  reason=BLOCK: chart_block: | chart_grade_C | alignment_blocked:blocked_by=['chart']
+[PASS] 09_news_block_dominates
+   expected: block (substr='news_block')
+   got     : block/none  reason=BLOCK: news_block:NFP | news_grade_C | alignment_blocked:blocked_by=['news']
+[PASS] 10_conflicting_directions
+   expected: block (substr='alignment_conflicting')
+   got     : block/none  reason=BLOCK: alignment_conflicting:directions=['bullish', 'bearish', 'bullish']
+[PASS] 11_low_confidence
+   expected: wait (substr='low_confidence')
+   got     : wait/none  reason=WAIT: low_confidence:0.30<0.6
+[PASS] 12_two_B_waits
+   expected: wait (substr='_grade_B')
+   got     : wait/none  reason=WAIT: market_grade_B | chart_grade_B | market_wait
+[PASS] 13_two_C_blocks
+   expected: block (substr='_grade_C')
+   got     : block/none  reason=BLOCK: market_block: | market_grade_C | chart_block:
+[PASS] 14_news_wait_post_event
+   expected: wait (substr='news_wait')
+   got     : wait/none  reason=WAIT: news_grade_B | news_wait | alignment_partial
+[PASS] 15_mixed_A_plus_and_A
+   expected: enter (substr='')
+   got     : enter/buy  reason=ENTER: aligned/buy all_grades_top conf=0.833 rr=2.0
+[PASS] 16_one_neutral_two_bullish
+   expected: enter (substr='')
+   got     : enter/buy  reason=ENTER: aligned/buy all_grades_top conf=0.8 rr=2.0
+
+====================================================================================================
+FINAL: 16/16 PASSED
+====================================================================================================

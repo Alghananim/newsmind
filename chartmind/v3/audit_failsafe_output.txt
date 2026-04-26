@@ -1,0 +1,47 @@
+====================================================================================================
+ChartMind — Audit / Fail-Safe (8 سيناريو خطر)
+====================================================================================================
+
+[01] missing_m15  ✓ PASS
+  permission=block  expected_in=['block']
+  grade=C  structure=unclear
+  reason=insufficient_m15_bars
+
+[02] insufficient_m15_bars  ✓ PASS
+  permission=block  expected_in=['block', 'wait']
+  grade=C  structure=unclear
+  reason=insufficient_m15_bars
+
+[03] missing_m5_only_m15  ✓ PASS
+  permission=block  expected_in=['allow', 'wait', 'block']
+  grade=C  structure=unclear
+  reason=struct=unclear|trend=bullish/1.0/smooth|candle=none/midrange/n_a|break=fake|retest=pending|entry=good|rr=0.38|mtf=n_a|vol=normal|atr=normal|hard_block:fake_brea
+
+[04] missing_m1_m15_m5_present  ✓ PASS
+  permission=block  expected_in=['allow', 'wait', 'block']
+  grade=C  structure=unclear
+  reason=struct=unclear|trend=bullish/1.0/smooth|candle=none/midrange/n_a|break=fake|retest=pending|entry=good|rr=0.38|mtf=aligned|vol=normal|atr=normal|hard_block:fake_
+
+[05] all_flat_no_atr  ✓ PASS
+  permission=wait  expected_in=['wait', 'block']
+  grade=C  structure=unclear
+  reason=struct=unclear|trend=neutral/0.0/unclear|candle=none/midrange/n_a|break=none|retest=none|entry=no_setup|rr=None|mtf=n_a|vol=unclear|atr=unclear|hard_wait:stop_u
+
+[06] unknown_pair  ✓ PASS
+  permission=block  expected_in=['allow', 'wait', 'block']
+  grade=C  structure=unclear
+  reason=struct=unclear|trend=bullish/1.0/smooth|candle=none/midrange/n_a|break=fake|retest=pending|entry=good|rr=0.38|mtf=n_a|vol=normal|atr=normal|hard_block:fake_brea
+
+[07] atr_zero  ✓ PASS
+  permission=wait  expected_in=['wait', 'block']
+  grade=C  structure=unclear
+  reason=struct=unclear|trend=neutral/0.0/unclear|candle=none/midrange/n_a|break=none|retest=none|entry=no_setup|rr=None|mtf=n_a|vol=unclear|atr=unclear|hard_wait:stop_u
+
+[08] m15_minimal_6_bars  ✓ PASS
+  permission=block  expected_in=['allow', 'wait', 'block']
+  grade=C  structure=unclear
+  reason=struct=unclear|trend=bullish/0.0/unclear|candle=none/midrange/n_a|break=fake|retest=pending|entry=late|rr=0.85|mtf=n_a|vol=unclear|atr=normal|hard_block:fake_br
+
+====================================================================================================
+FINAL: 8/8 PASSED  (100%)
+====================================================================================================

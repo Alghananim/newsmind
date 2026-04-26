@@ -1,0 +1,264 @@
+====================================================================================================
+MarketMind V3 — Final Acceptance Certification (17 سيناريو)
+====================================================================================================
+
+┌─[01] eurusd_trend_clean  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars=80 news=yes:allow  session=london_ny
+│ REGIME      : got=trend  direction=bullish  trend_strength=1.00
+│ BIASES      : dollar=neutral  counter=neutral  risk=risk_on  news_align=aligned
+│ MARKET      : vol=normal  liq=good  spread=tight  corr=normal
+│ DATA Q      : good
+│ CROSS-MKT   : confirmation=strong  contradictions=none
+│ SCORES      : trend=1.0 vol=1.0 liq=1.0 dq=1.0 speed=1.0 mi=1.0 confidence=1.0
+│ LATENCY     : decision=0.39ms  data=0.0ms  cold=1.20ms  warm=0.42ms  bottleneck=correlation
+│ SOURCES     : used=['EUR/USD', 'USD/JPY', 'GBP/USD', 'XAU/USD', 'SPX500', 'NewsMind']  stale=none
+│ GRADE       : got=A+  expect=[A..A+]  ✓
+│ PERMISSION  : got=allow  expect=allow  ✓
+│ REASON      : regime_diag={'adx': 100.0, 'atr': 0.000263, 'atr_p95': 0.000266, 'whipsaws_10': 0, 'last_range_x_atr': 1.0}|dxy=down/0.401|risk=risk_on/0.85|corr=normal/{'EURUSD_vs_USDJPY': -0.17, 'EURUSD_vs_GOLD': 0
+└─ correct? PASS
+
+┌─[02] eurusd_choppy  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars=80 news=none  session=london_ny
+│ REGIME      : got=choppy  direction=bullish  trend_strength=0.00
+│ BIASES      : dollar=neutral  counter=neutral  risk=unclear  news_align=no_news
+│ MARKET      : vol=normal  liq=good  spread=tight  corr=normal
+│ DATA Q      : good
+│ CROSS-MKT   : confirmation=weak  contradictions=none
+│ SCORES      : trend=0.025 vol=1.0 liq=1.0 dq=1.0 speed=1.0 mi=0.805 confidence=0.903
+│ LATENCY     : decision=0.2ms  data=0.0ms  cold=0.83ms  warm=0.22ms  bottleneck=correlation
+│ SOURCES     : used=['EUR/USD', 'USD/JPY']  stale=none
+│ GRADE       : got=C  expect=[C..C]  ✓
+│ PERMISSION  : got=wait  expect=wait  ✓
+│ REASON      : regime_diag={'adx': 0.0, 'atr': 0.0002, 'atr_p95': 0.0002, 'whipsaws_10': 9, 'last_range_x_atr': 1.0}|dxy=flat/0.495|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': 0.087}|contr={'count': 0, 'critic
+└─ correct? PASS
+
+┌─[03] usdjpy_strong_riskoff  ✓ PASS
+│ INPUT       : pair=USD/JPY  bars=80 news=yes:wait  session=london_ny
+│ REGIME      : got=trend  direction=bullish  trend_strength=1.00
+│ BIASES      : dollar=neutral  counter=strong  risk=risk_off  news_align=news_caution
+│ MARKET      : vol=normal  liq=good  spread=tight  corr=normal
+│ DATA Q      : good
+│ CROSS-MKT   : confirmation=strong  contradictions=['risk_off_but_usdjpy_rising_haven_violated', 'gold_up_and_dollar_up_abnormal_regime', 'spx_down_but_usdjpy_up_risk_off_violated']
+│ SCORES      : trend=1.0 vol=1.0 liq=1.0 dq=1.0 speed=1.0 mi=0.55 confidence=0.775
+│ LATENCY     : decision=0.31ms  data=0.0ms  cold=0.95ms  warm=0.33ms  bottleneck=correlation
+│ SOURCES     : used=['EUR/USD', 'USD/JPY', 'GBP/USD', 'XAU/USD', 'SPX500', 'NewsMind']  stale=none
+│ GRADE       : got=C  expect=[C..C]  ✓
+│ PERMISSION  : got=wait  expect=wait  ✓
+│ REASON      : regime_diag={'adx': 100.0, 'atr': 0.054436, 'atr_p95': 0.05601, 'whipsaws_10': 0, 'last_range_x_atr': 0.8}|dxy=up/0.566|risk=risk_off/0.85|corr=normal/{'EURUSD_vs_USDJPY': -0.216, 'EURUSD_vs_GOLD': 0.
+└─ correct? PASS
+
+┌─[04] usdjpy_yields_rising_aligned  ✓ PASS
+│ INPUT       : pair=USD/JPY  bars=80 news=yes:allow  session=london_ny
+│ REGIME      : got=trend  direction=bullish  trend_strength=1.00
+│ BIASES      : dollar=neutral  counter=neutral  risk=unclear  news_align=aligned
+│ MARKET      : vol=normal  liq=good  spread=tight  corr=normal
+│ DATA Q      : good
+│ CROSS-MKT   : confirmation=strong  contradictions=none
+│ SCORES      : trend=1.0 vol=1.0 liq=1.0 dq=1.0 speed=1.0 mi=1.0 confidence=1.0
+│ LATENCY     : decision=0.21ms  data=0.0ms  cold=0.89ms  warm=0.23ms  bottleneck=correlation
+│ SOURCES     : used=['EUR/USD', 'USD/JPY', 'GBP/USD', 'NewsMind']  stale=none
+│ GRADE       : got=A+  expect=[B..A+]  ✓
+│ PERMISSION  : got=allow  expect=allow  ✓
+│ REASON      : regime_diag={'adx': 100.0, 'atr': 0.026107, 'atr_p95': 0.027045, 'whipsaws_10': 0, 'last_range_x_atr': 0.79}|dxy=up/0.586|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': 0.009}|contr={'count': 0, 'c
+└─ correct? PASS
+
+┌─[05] dxy_up_eurusd_up_inconsistent  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars=80 news=none  session=london_ny
+│ REGIME      : got=trend  direction=bullish  trend_strength=1.00
+│ BIASES      : dollar=neutral  counter=neutral  risk=unclear  news_align=no_news
+│ MARKET      : vol=normal  liq=good  spread=tight  corr=normal
+│ DATA Q      : good
+│ CROSS-MKT   : confirmation=moderate  contradictions=['eurusd_and_usdjpy_both_up_inconsistent_usd']
+│ SCORES      : trend=1.0 vol=1.0 liq=1.0 dq=1.0 speed=1.0 mi=0.85 confidence=0.925
+│ LATENCY     : decision=0.25ms  data=0.0ms  cold=0.77ms  warm=0.38ms  bottleneck=correlation
+│ SOURCES     : used=['EUR/USD', 'USD/JPY', 'GBP/USD']  stale=none
+│ GRADE       : got=C  expect=[C..B]  ✓
+│ PERMISSION  : got=wait  expect=wait  ✓
+│ REASON      : regime_diag={'adx': 100.0, 'atr': 0.000395, 'atr_p95': 0.000397, 'whipsaws_10': 0, 'last_range_x_atr': 1.0}|dxy=down/0.397|risk=unclear/1.0|corr=normal/{'EURUSD_vs_USDJPY': 0.324}|contr={'count': 1, '
+└─ correct? PASS
+
+┌─[06] dxy_down_eurusd_flat_divergence  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars=80 news=none  session=london_ny
+│ REGIME      : got=choppy  direction=neutral  trend_strength=0.00
+│ BIASES      : dollar=neutral  counter=neutral  risk=unclear  news_align=no_news
+│ MARKET      : vol=normal  liq=good  spread=tight  corr=normal
+│ DATA Q      : good
+│ CROSS-MKT   : confirmation=weak  contradictions=none
+│ SCORES      : trend=0.025 vol=1.0 liq=1.0 dq=1.0 speed=1.0 mi=0.805 confidence=0.903
+│ LATENCY     : decision=0.33ms  data=0.0ms  cold=1.04ms  warm=0.35ms  bottleneck=strength_dxy
+│ SOURCES     : used=['EUR/USD', 'USD/JPY', 'GBP/USD']  stale=none
+│ GRADE       : got=C  expect=[C..B]  ✓
+│ PERMISSION  : got=wait  expect=wait  ✓
+│ REASON      : regime_diag={'adx': 6.8, 'atr': 5e-06, 'atr_p95': 6e-06, 'whipsaws_10': 5, 'last_range_x_atr': 1.07}|dxy=down/0.458|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': 0.22}|contr={'count': 0, 'critical
+└─ correct? PASS
+
+┌─[07] yields_up_usdjpy_flat  ✓ PASS
+│ INPUT       : pair=USD/JPY  bars=80 news=none  session=london_ny
+│ REGIME      : got=choppy  direction=neutral  trend_strength=0.00
+│ BIASES      : dollar=neutral  counter=neutral  risk=unclear  news_align=no_news
+│ MARKET      : vol=normal  liq=good  spread=tight  corr=normal
+│ DATA Q      : good
+│ CROSS-MKT   : confirmation=weak  contradictions=none
+│ SCORES      : trend=0.025 vol=1.0 liq=1.0 dq=1.0 speed=1.0 mi=0.805 confidence=0.903
+│ LATENCY     : decision=0.24ms  data=0.0ms  cold=0.82ms  warm=0.26ms  bottleneck=correlation
+│ SOURCES     : used=['EUR/USD', 'USD/JPY', 'GBP/USD']  stale=none
+│ GRADE       : got=C  expect=[C..B]  ✓
+│ PERMISSION  : got=wait  expect=wait  ✓
+│ REASON      : regime_diag={'adx': 4.1, 'atr': 0.001778, 'atr_p95': 0.002352, 'whipsaws_10': 6, 'last_range_x_atr': 0.9}|dxy=up/0.589|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': 0.024}|contr={'count': 0, 'crit
+└─ correct? PASS
+
+┌─[08] gold_and_dollar_both_up_abnormal  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars=80 news=none  session=london_ny
+│ REGIME      : got=trend  direction=bearish  trend_strength=1.00
+│ BIASES      : dollar=neutral  counter=neutral  risk=unclear  news_align=no_news
+│ MARKET      : vol=normal  liq=good  spread=tight  corr=normal
+│ DATA Q      : good
+│ CROSS-MKT   : confirmation=moderate  contradictions=['gold_up_and_dollar_up_abnormal_regime']
+│ SCORES      : trend=1.0 vol=1.0 liq=1.0 dq=1.0 speed=1.0 mi=0.85 confidence=0.925
+│ LATENCY     : decision=0.25ms  data=0.0ms  cold=0.86ms  warm=0.27ms  bottleneck=correlation
+│ SOURCES     : used=['EUR/USD', 'USD/JPY', 'GBP/USD', 'XAU/USD']  stale=none
+│ GRADE       : got=B  expect=[C..B]  ✓
+│ PERMISSION  : got=wait  expect=wait  ✓
+│ REASON      : regime_diag={'adx': 100.0, 'atr': 0.000263, 'atr_p95': 0.000265, 'whipsaws_10': 0, 'last_range_x_atr': 0.99}|dxy=up/0.607|risk=unclear/0.5|corr=normal/{'EURUSD_vs_USDJPY': -0.028, 'EURUSD_vs_GOLD': 0.
+└─ correct? PASS
+
+┌─[09] spread_dangerous  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars=80 news=none  session=london_ny
+│ REGIME      : got=trend  direction=bullish  trend_strength=1.00
+│ BIASES      : dollar=neutral  counter=neutral  risk=unclear  news_align=no_news
+│ MARKET      : vol=normal  liq=good  spread=dangerous  corr=normal
+│ DATA Q      : partial
+│ CROSS-MKT   : confirmation=moderate  contradictions=none
+│ SCORES      : trend=1.0 vol=1.0 liq=1.0 dq=0.7 speed=1.0 mi=0.74 confidence=0.87
+│ LATENCY     : decision=0.2ms  data=0.0ms  cold=0.79ms  warm=0.21ms  bottleneck=correlation
+│ SOURCES     : used=['EUR/USD', 'USD/JPY']  stale=none
+│ GRADE       : got=C  expect=[C..C]  ✓
+│ PERMISSION  : got=block  expect=block  ✓
+│ REASON      : regime_diag={'adx': 100.0, 'atr': 0.000248, 'atr_p95': 0.000286, 'whipsaws_10': 2, 'last_range_x_atr': 0.87}|dxy=down/0.415|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': 0.102}|contr={'count': 0, 
+└─ correct? PASS
+
+┌─[10] volatility_extreme  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars=80 news=none  session=london_ny
+│ REGIME      : got=high_volatility  direction=bullish  trend_strength=0.00
+│ BIASES      : dollar=weak  counter=strong  risk=unclear  news_align=no_news
+│ MARKET      : vol=extreme  liq=good  spread=wide  corr=normal
+│ DATA Q      : degraded
+│ CROSS-MKT   : confirmation=moderate  contradictions=['rapid_move_chase_risk_news_allow']
+│ SCORES      : trend=0.1 vol=0.1 liq=1.0 dq=0.4 speed=1.0 mi=0.25 confidence=0.625
+│ LATENCY     : decision=0.2ms  data=0.0ms  cold=0.77ms  warm=0.22ms  bottleneck=correlation
+│ SOURCES     : used=['EUR/USD', 'USD/JPY']  stale=none
+│ GRADE       : got=C  expect=[C..C]  ✓
+│ PERMISSION  : got=wait  expect=wait  ✓
+│ REASON      : regime_diag={'adx': 93.9, 'atr': 0.000964, 'atr_p95': 0.000223, 'whipsaws_10': 7, 'last_range_x_atr': 11.41}|dxy=down/0.12|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': 0.108}|contr={'count': 1, '
+└─ correct? PASS
+
+┌─[11] data_missing  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars=3 news=none  session=london_ny
+│ REGIME      : got=unclear  direction=unclear  trend_strength=0.00
+│ BIASES      : dollar=neutral  counter=neutral  risk=unclear  news_align=no_news
+│ MARKET      : vol=normal  liq=good  spread=tight  corr=unavailable
+│ DATA Q      : missing
+│ CROSS-MKT   : confirmation=none  contradictions=none
+│ SCORES      : trend=0.1 vol=1.0 liq=1.0 dq=0.0 speed=1.0 mi=0.62 confidence=0.81
+│ LATENCY     : decision=0.09ms  data=0.0ms  cold=0.13ms  warm=0.11ms  bottleneck=correlation
+│ SOURCES     : used=['EUR/USD', 'USD/JPY']  stale=none
+│ GRADE       : got=C  expect=[C..C]  ✓
+│ PERMISSION  : got=wait  expect=wait  ✓
+│ REASON      : regime_diag={'reason': 'insufficient_history'}|dxy=down/0.433|risk=unclear/0.0|corr=unavailable/{}|contr={'count': 0, 'critical': 0, 'high': 0, 'medium': 0, 'labels': []}|hard_wait:data_missing
+└─ correct? PASS
+
+┌─[12] sources_stale  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars=80 news=none  session=london_ny
+│ REGIME      : got=trend  direction=bullish  trend_strength=1.00
+│ BIASES      : dollar=neutral  counter=neutral  risk=unclear  news_align=no_news
+│ MARKET      : vol=normal  liq=good  spread=tight  corr=normal
+│ DATA Q      : good
+│ CROSS-MKT   : confirmation=moderate  contradictions=none
+│ SCORES      : trend=1.0 vol=1.0 liq=1.0 dq=1.0 speed=1.0 mi=1.0 confidence=1.0
+│ LATENCY     : decision=0.21ms  data=2000ms  cold=0.86ms  warm=0.23ms  bottleneck=correlation
+│ SOURCES     : used=['EUR/USD', 'USD/JPY']  stale=['EUR/USD', 'USD/JPY', 'NewsMind']
+│ GRADE       : got=C  expect=[C..C]  ✓
+│ PERMISSION  : got=wait  expect=wait  ✓
+│ REASON      : regime_diag={'adx': 100.0, 'atr': 0.000248, 'atr_p95': 0.000286, 'whipsaws_10': 2, 'last_range_x_atr': 0.87}|dxy=down/0.415|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': -0.354}|contr={'count': 0,
+└─ correct? PASS
+
+┌─[13] session_off_handled  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars=80 news=none  session=off
+│ REGIME      : got=trend  direction=bullish  trend_strength=1.00
+│ BIASES      : dollar=neutral  counter=neutral  risk=unclear  news_align=no_news
+│ MARKET      : vol=normal  liq=good  spread=tight  corr=normal
+│ DATA Q      : partial
+│ CROSS-MKT   : confirmation=moderate  contradictions=none
+│ SCORES      : trend=1.0 vol=1.0 liq=1.0 dq=0.7 speed=1.0 mi=0.94 confidence=0.97
+│ LATENCY     : decision=0.19ms  data=0.0ms  cold=0.78ms  warm=0.21ms  bottleneck=correlation
+│ SOURCES     : used=['EUR/USD', 'USD/JPY']  stale=none
+│ GRADE       : got=A  expect=[C..A+]  ✓
+│ PERMISSION  : got=allow  expect=any  ✓
+│ REASON      : regime_diag={'adx': 100.0, 'atr': 0.000248, 'atr_p95': 0.000286, 'whipsaws_10': 2, 'last_range_x_atr': 0.87}|dxy=down/0.415|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': -0.017}|contr={'count': 0,
+└─ correct? PASS
+
+┌─[14] unknown_pair  ✓ PASS
+│ INPUT       : pair=ZZZ/YYY  bars=0 news=none  session=off
+│ REGIME      : got=unclear  direction=unclear  trend_strength=0.00
+│ BIASES      : dollar=unclear  counter=unclear  risk=unclear  news_align=no_news
+│ MARKET      : vol=unclear  liq=unclear  spread=unclear  corr=unavailable
+│ DATA Q      : missing
+│ CROSS-MKT   : confirmation=none  contradictions=none
+│ SCORES      : trend=0.0 vol=0.0 liq=0.0 dq=0.0 speed=0.0 mi=0.0 confidence=0.0
+│ LATENCY     : decision=0.0ms  data=0.0ms  cold=0.01ms  warm=0.01ms  bottleneck=
+│ SOURCES     : used=['EUR/USD']  stale=none
+│ GRADE       : got=C  expect=[C..C]  ✓
+│ PERMISSION  : got=block  expect=block  ✓
+│ REASON      : no_bars_for_pair
+└─ correct? PASS
+
+┌─[15] rapid_move_chase_risk  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars=80 news=yes:allow  session=london_ny
+│ REGIME      : got=trend  direction=bullish  trend_strength=1.00
+│ BIASES      : dollar=neutral  counter=neutral  risk=unclear  news_align=aligned
+│ MARKET      : vol=normal  liq=good  spread=tight  corr=normal
+│ DATA Q      : good
+│ CROSS-MKT   : confirmation=strong  contradictions=['rapid_move_chase_risk_news_allow']
+│ SCORES      : trend=1.0 vol=1.0 liq=1.0 dq=1.0 speed=1.0 mi=0.95 confidence=0.975
+│ LATENCY     : decision=0.19ms  data=0.0ms  cold=0.79ms  warm=0.21ms  bottleneck=correlation
+│ SOURCES     : used=['EUR/USD', 'USD/JPY', 'NewsMind']  stale=none
+│ GRADE       : got=C  expect=[C..B]  ✓
+│ PERMISSION  : got=wait  expect=wait  ✓
+│ REASON      : regime_diag={'adx': 99.7, 'atr': 0.000261, 'atr_p95': 0.000185, 'whipsaws_10': 0, 'last_range_x_atr': 1.38}|dxy=down/0.379|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': -0.121}|contr={'count': 1, 
+└─ correct? PASS
+
+┌─[16] fake_breakout  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars=80 news=none  session=london_ny
+│ REGIME      : got=fake_breakout  direction=bearish  trend_strength=0.10
+│ BIASES      : dollar=strong  counter=weak  risk=unclear  news_align=no_news
+│ MARKET      : vol=high  liq=good  spread=tight  corr=normal
+│ DATA Q      : good
+│ CROSS-MKT   : confirmation=moderate  contradictions=['rapid_move_chase_risk_news_allow']
+│ SCORES      : trend=0.06 vol=0.5 liq=1.0 dq=1.0 speed=1.0 mi=0.562 confidence=0.781
+│ LATENCY     : decision=0.25ms  data=0.0ms  cold=0.79ms  warm=0.27ms  bottleneck=correlation
+│ SOURCES     : used=['EUR/USD', 'USD/JPY']  stale=none
+│ GRADE       : got=C  expect=[C..C]  ✓
+│ PERMISSION  : got=wait  expect=wait  ✓
+│ REASON      : regime_diag={'adx': 85.0, 'atr': 0.002107, 'atr_p95': 0.000948, 'whipsaws_10': 3, 'last_range_x_atr': 2.37}|dxy=up/0.739|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': -0.04}|contr={'count': 1, 'cr
+└─ correct? PASS
+
+┌─[17] range_narrow_no_edge  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars=80 news=yes:allow  session=london_ny
+│ REGIME      : got=range  direction=neutral  trend_strength=0.00
+│ BIASES      : dollar=neutral  counter=neutral  risk=unclear  news_align=no_clear_signal
+│ MARKET      : vol=normal  liq=good  spread=tight  corr=broken
+│ DATA Q      : good
+│ CROSS-MKT   : confirmation=none  contradictions=none
+│ SCORES      : trend=0.15 vol=1.0 liq=1.0 dq=1.0 speed=1.0 mi=0.68 confidence=0.84
+│ LATENCY     : decision=0.2ms  data=0.0ms  cold=0.80ms  warm=0.21ms  bottleneck=correlation
+│ SOURCES     : used=['EUR/USD', 'USD/JPY', 'NewsMind']  stale=none
+│ GRADE       : got=C  expect=[C..B]  ✓
+│ PERMISSION  : got=wait  expect=wait  ✓
+│ REASON      : regime_diag={'adx': 16.7, 'atr': 0.00016, 'atr_p95': 0.000169, 'whipsaws_10': 1, 'last_range_x_atr': 1.24}|dxy=flat/0.493|risk=unclear/0.0|corr=broken/{'EURUSD_vs_USDJPY': 1.0}|contr={'count': 0, 'cri
+└─ correct? PASS
+
+====================================================================================================
+FINAL: 17/17 PASSED  (100%)
+LATENCY AVG : cold=0.77ms  warm=0.24ms
+LATENCY MAX : cold=1.20ms  warm=0.42ms
+====================================================================================================

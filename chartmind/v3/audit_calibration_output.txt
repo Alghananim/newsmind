@@ -1,0 +1,91 @@
+====================================================================================================
+ChartMind — Grade Calibration Audit
+====================================================================================================
+[PASS] 01_ideal_A_plus_setup
+    expected grade=A+ perm=allow
+    got      grade=A+      perm=allow
+    reason  : a_plus_all_conditions_met
+[PASS] 02_late_entry_blocks_A_plus
+    expected grade=C perm=wait
+    got      grade=C      perm=wait
+    reason  : hard_wait:entry_late
+[PASS] 03_chase_blocks_everything
+    expected grade=C perm=block
+    got      grade=C      perm=block
+    reason  : hard_block:chase_entry
+[PASS] 04_fake_breakout_blocks
+    expected grade=C perm=block
+    got      grade=C      perm=block
+    reason  : hard_block:fake_breakout
+[PASS] 05_liq_sweep_blocks
+    expected grade=C perm=block
+    got      grade=C      perm=block
+    reason  : hard_block:liquidity_sweep
+[PASS] 06_mtf_conflict_blocks
+    expected grade=C perm=block
+    got      grade=C      perm=block
+    reason  : hard_block:mtf_conflict
+[PASS] 07_rr_below_0.8_blocks
+    expected grade=C perm=block
+    got      grade=C      perm=block
+    reason  : hard_block:rr_too_low
+[PASS] 08_rr_marginal_drops_to_B
+    expected grade=B perm=wait
+    got      grade=B      perm=wait
+    reason  : b_partial_setup_observable
+[PASS] 09_rr_1.3_drops_to_A
+    expected grade=A perm=allow
+    got      grade=A      perm=allow
+    reason  : a_grade_strong_with_caveats
+[PASS] 10_excellent_setup_full_A_plus
+    expected grade=A+ perm=allow
+    got      grade=A+      perm=allow
+    reason  : a_plus_all_conditions_met
+[PASS] 11_weak_candle_drops_A_plus_to_A
+    expected grade=A perm=allow
+    got      grade=A      perm=allow
+    reason  : a_grade_strong_with_caveats
+[PASS] 12_candle_midrange_no_context_waits
+    expected grade=C perm=wait
+    got      grade=C      perm=wait
+    reason  : hard_wait:candle_no_context_or_midrange
+[PASS] 13_retest_pending_waits
+    expected grade=C perm=wait
+    got      grade=C      perm=wait
+    reason  : hard_wait:retest_pending
+[PASS] 14_breakout_weak_waits
+    expected grade=C perm=wait
+    got      grade=C      perm=wait
+    reason  : hard_wait:breakout_weak
+[PASS] 15_exhausting_trend_waits
+    expected grade=C perm=wait
+    got      grade=C      perm=wait
+    reason  : hard_wait:trend_exhausting
+[PASS] 16_late_entry_waits
+    expected grade=C perm=wait
+    got      grade=C      perm=wait
+    reason  : hard_wait:entry_late
+[PASS] 17_stop_undefined_waits
+    expected grade=C perm=wait
+    got      grade=C      perm=wait
+    reason  : hard_wait:stop_undefined
+[PASS] 18_range_market_b_wait
+    expected grade=B perm=wait
+    got      grade=B      perm=wait
+    reason  : b_partial_setup_observable
+[PASS] 19_no_actionable_unclear_late_to_C_wait
+    expected grade=C perm=wait
+    got      grade=C      perm=wait
+    reason  : hard_wait:entry_late
+
+--- Confidence ordering check ---
+  A+ confidence : 0.85  grade=A+
+  A  confidence : 0.7   grade=A
+  B  confidence : 0.5   grade=B
+  C(block) conf : 0.0  grade=C
+  C(wait)  conf : 0.0  grade=C
+  ORDERING (A+ > A > B > C): ✓ PASS
+
+====================================================================================================
+FINAL: 20/20 PASSED
+====================================================================================================

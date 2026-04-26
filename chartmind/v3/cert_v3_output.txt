@@ -1,0 +1,398 @@
+====================================================================================================
+ChartMind V3 — Certification Test (23 سيناريو)
+====================================================================================================
+
+┌─[01] 01_trend_clean  ✓ PASS
+│ INPUT     : pair=EUR/USD  TFs=['M15']  bars_m15=80
+│ STRUCTURE : bos_up  trend=bullish/1.00/smooth
+│ LEVELS    : nearest=1.1077346488716262 (resistance) dist=5.28ATR
+│ CANDLE    : none/midrange/n_a
+│ BREAKOUT  : status=weak  retest=none  pullback=n_a
+│ ENTRY     : late  late_risk=True  zone=(1.10972, 1.11016)
+│ STOP/TGT  : stop=1.10723  target=1.11077  R/R=0.31  behind_swing_support|atr_2x_no_resistance
+│ MTF       : n_a
+│ VOL/ATR   : vol=normal  atr_state=normal
+│ TRAPS     : fake_break=False liq_sweep=False
+│ WARNINGS  : none
+│ GRADE     : got=C  expect=[C..A+]  ✓
+│ PERMISSION: got=wait  expect=any  ✓
+│ REASON    : struct=bos_up|trend=bullish/1.0/smooth|candle=none/midrange/n_a|break=weak|retest=none|entry=late|rr=0.31|mtf=n_a|vol=normal|atr=normal|hard_wait:breakout_weak
+└─ correct? PASS
+
+┌─[02] 02_range  ✓ PASS
+│ INPUT     : pair=EUR/USD  TFs=['M15']  bars_m15=80
+│ STRUCTURE : unclear  trend=bearish/0.60/smooth
+│ LEVELS    : nearest=1.0990989966735087 (support) dist=2.76ATR
+│ CANDLE    : none/midrange/n_a
+│ BREAKOUT  : status=none  retest=none  pullback=n_a
+│ ENTRY     : late  late_risk=True  zone=(1.0997, 1.10014)
+│ STOP/TGT  : stop=1.10099  target=1.0991  R/R=0.76  behind_swing_resistance|to_next_support
+│ MTF       : n_a
+│ VOL/ATR   : vol=normal  atr_state=normal
+│ TRAPS     : fake_break=False liq_sweep=False
+│ WARNINGS  : none
+│ GRADE     : got=C  expect=[C..B]  ✓
+│ PERMISSION: got=wait  expect=wait  ✓
+│ REASON    : struct=unclear|trend=bearish/0.6/smooth|candle=none/midrange/n_a|break=none|retest=none|entry=late|rr=0.76|mtf=n_a|vol=normal|atr=normal|hard_wait:entry_late
+└─ correct? PASS
+
+┌─[03] 03_choppy  ✓ PASS
+│ INPUT     : pair=EUR/USD  TFs=['M15']  bars_m15=80
+│ STRUCTURE : unclear  trend=bullish/0.00/jagged
+│ LEVELS    : nearest=1.1004500000000002 (resistance) dist=0.50ATR
+│ CANDLE    : bull_engulfing/at_resistance/late
+│ BREAKOUT  : status=none  retest=none  pullback=n_a
+│ ENTRY     : late  late_risk=True  zone=(1.10008, 1.10052)
+│ STOP/TGT  : stop=1.09946  target=1.10045  R/R=0.18  behind_swing_support|to_next_resistance
+│ MTF       : n_a
+│ VOL/ATR   : vol=normal  atr_state=normal
+│ TRAPS     : fake_break=False liq_sweep=False
+│ WARNINGS  : ['chop_trap_detected']
+│ GRADE     : got=C  expect=[C..C]  ✓
+│ PERMISSION: got=wait  expect=wait  ✓
+│ REASON    : struct=unclear|trend=bullish/0.0/jagged|candle=bull_engulfing/at_resistance/late|break=none|retest=none|entry=late|rr=0.18|mtf=n_a|vol=normal|atr=normal|hard_wait:entry_late
+└─ correct? PASS
+
+┌─[04] 04_real_breakout  ✓ PASS
+│ INPUT     : pair=EUR/USD  TFs=['M15']  bars_m15=80
+│ STRUCTURE : bos_up  trend=bullish/1.00/smooth
+│ LEVELS    : nearest=1.1009033934637615 (resistance) dist=3.06ATR
+│ CANDLE    : none/midrange/n_a
+│ BREAKOUT  : status=real  retest=none  pullback=n_a
+│ ENTRY     : late  late_risk=True  zone=(1.10188, 1.10232)
+│ STOP/TGT  : stop=1.10018  target=1.10288  R/R=0.41  behind_swing_support|atr_2x_no_resistance
+│ MTF       : n_a
+│ VOL/ATR   : vol=normal  atr_state=normal
+│ TRAPS     : fake_break=False liq_sweep=False
+│ WARNINGS  : ['bear_trap_detected']
+│ GRADE     : got=C  expect=[C..A+]  ✓
+│ PERMISSION: got=wait  expect=any  ✓
+│ REASON    : struct=bos_up|trend=bullish/1.0/smooth|candle=none/midrange/n_a|break=real|retest=none|entry=late|rr=0.41|mtf=n_a|vol=normal|atr=normal|hard_wait:entry_late
+└─ correct? PASS
+
+┌─[05] 05_fake_breakout  ✓ PASS
+│ INPUT     : pair=EUR/USD  TFs=['M15']  bars_m15=80
+│ STRUCTURE : unclear  trend=bearish/0.34/unclear
+│ LEVELS    : nearest=1.0990989966735087 (support) dist=1.18ATR
+│ CANDLE    : none/midrange/n_a
+│ BREAKOUT  : status=none  retest=none  pullback=n_a
+│ ENTRY     : late  late_risk=True  zone=(1.0995, 1.09994)
+│ STOP/TGT  : stop=1.10106  target=1.0991  R/R=0.46  behind_swing_resistance|to_next_support
+│ MTF       : n_a
+│ VOL/ATR   : vol=high  atr_state=normal
+│ TRAPS     : fake_break=False liq_sweep=False
+│ WARNINGS  : none
+│ GRADE     : got=C  expect=[C..C]  ✓
+│ PERMISSION: got=wait  expect=any  ✓
+│ REASON    : struct=unclear|trend=bearish/0.34/unclear|candle=none/midrange/n_a|break=none|retest=none|entry=late|rr=0.46|mtf=n_a|vol=high|atr=normal|hard_wait:entry_late
+└─ correct? PASS
+
+┌─[06] 06_pullback_success  ✓ PASS
+│ INPUT     : pair=EUR/USD  TFs=['M15']  bars_m15=80
+│ STRUCTURE : bos_up  trend=bullish/1.00/smooth
+│ LEVELS    : nearest=1.1009033934637615 (resistance) dist=3.06ATR
+│ CANDLE    : none/midrange/n_a
+│ BREAKOUT  : status=real  retest=none  pullback=n_a
+│ ENTRY     : late  late_risk=True  zone=(1.10188, 1.10232)
+│ STOP/TGT  : stop=1.10018  target=1.10288  R/R=0.41  behind_swing_support|atr_2x_no_resistance
+│ MTF       : n_a
+│ VOL/ATR   : vol=normal  atr_state=normal
+│ TRAPS     : fake_break=False liq_sweep=False
+│ WARNINGS  : ['bear_trap_detected']
+│ GRADE     : got=C  expect=[C..A+]  ✓
+│ PERMISSION: got=wait  expect=any  ✓
+│ REASON    : struct=bos_up|trend=bullish/1.0/smooth|candle=none/midrange/n_a|break=real|retest=none|entry=late|rr=0.41|mtf=n_a|vol=normal|atr=normal|hard_wait:entry_late
+└─ correct? PASS
+
+┌─[07] 07_pullback_fail  ✓ PASS
+│ INPUT     : pair=EUR/USD  TFs=['M15']  bars_m15=80
+│ STRUCTURE : unclear  trend=bearish/0.34/unclear
+│ LEVELS    : nearest=1.0990989966735087 (support) dist=1.18ATR
+│ CANDLE    : none/midrange/n_a
+│ BREAKOUT  : status=none  retest=none  pullback=n_a
+│ ENTRY     : late  late_risk=True  zone=(1.0995, 1.09994)
+│ STOP/TGT  : stop=1.10106  target=1.0991  R/R=0.46  behind_swing_resistance|to_next_support
+│ MTF       : n_a
+│ VOL/ATR   : vol=high  atr_state=normal
+│ TRAPS     : fake_break=False liq_sweep=False
+│ WARNINGS  : none
+│ GRADE     : got=C  expect=[C..C]  ✓
+│ PERMISSION: got=wait  expect=any  ✓
+│ REASON    : struct=unclear|trend=bearish/0.34/unclear|candle=none/midrange/n_a|break=none|retest=none|entry=late|rr=0.46|mtf=n_a|vol=high|atr=normal|hard_wait:entry_late
+└─ correct? PASS
+
+┌─[08] 08_retest_success  ✓ PASS
+│ INPUT     : pair=EUR/USD  TFs=['M15']  bars_m15=80
+│ STRUCTURE : bos_up  trend=bullish/1.00/smooth
+│ LEVELS    : nearest=1.1009033934637615 (resistance) dist=3.06ATR
+│ CANDLE    : none/midrange/n_a
+│ BREAKOUT  : status=real  retest=none  pullback=n_a
+│ ENTRY     : late  late_risk=True  zone=(1.10188, 1.10232)
+│ STOP/TGT  : stop=1.10018  target=1.10288  R/R=0.41  behind_swing_support|atr_2x_no_resistance
+│ MTF       : n_a
+│ VOL/ATR   : vol=normal  atr_state=normal
+│ TRAPS     : fake_break=False liq_sweep=False
+│ WARNINGS  : ['bear_trap_detected']
+│ GRADE     : got=C  expect=[C..A+]  ✓
+│ PERMISSION: got=wait  expect=any  ✓
+│ REASON    : struct=bos_up|trend=bullish/1.0/smooth|candle=none/midrange/n_a|break=real|retest=none|entry=late|rr=0.41|mtf=n_a|vol=normal|atr=normal|hard_wait:entry_late
+└─ correct? PASS
+
+┌─[09] 09_retest_fail  ✓ PASS
+│ INPUT     : pair=EUR/USD  TFs=['M15']  bars_m15=80
+│ STRUCTURE : unclear  trend=bearish/0.34/unclear
+│ LEVELS    : nearest=1.0990989966735087 (support) dist=1.18ATR
+│ CANDLE    : none/midrange/n_a
+│ BREAKOUT  : status=none  retest=none  pullback=n_a
+│ ENTRY     : late  late_risk=True  zone=(1.0995, 1.09994)
+│ STOP/TGT  : stop=1.10106  target=1.0991  R/R=0.46  behind_swing_resistance|to_next_support
+│ MTF       : n_a
+│ VOL/ATR   : vol=high  atr_state=normal
+│ TRAPS     : fake_break=False liq_sweep=False
+│ WARNINGS  : none
+│ GRADE     : got=C  expect=[C..C]  ✓
+│ PERMISSION: got=wait  expect=any  ✓
+│ REASON    : struct=unclear|trend=bearish/0.34/unclear|candle=none/midrange/n_a|break=none|retest=none|entry=late|rr=0.46|mtf=n_a|vol=high|atr=normal|hard_wait:entry_late
+└─ correct? PASS
+
+┌─[10] 10_reversal_pattern  ✓ PASS
+│ INPUT     : pair=EUR/USD  TFs=['M15']  bars_m15=80
+│ STRUCTURE : unclear  trend=bullish/1.00/smooth
+│ LEVELS    : nearest=1.1031396506431288 (resistance) dist=14.00ATR
+│ CANDLE    : bear_engulfing/midrange/weak
+│ BREAKOUT  : status=weak  retest=none  pullback=n_a
+│ ENTRY     : late  late_risk=True  zone=(1.10871, 1.10915)
+│ STOP/TGT  : stop=1.0998  target=1.10976  R/R=0.09  behind_swing_support|atr_2x_no_resistance
+│ MTF       : n_a
+│ VOL/ATR   : vol=high  atr_state=normal
+│ TRAPS     : fake_break=False liq_sweep=False
+│ WARNINGS  : none
+│ GRADE     : got=C  expect=[C..A+]  ✓
+│ PERMISSION: got=wait  expect=any  ✓
+│ REASON    : struct=unclear|trend=bullish/1.0/smooth|candle=bear_engulfing/midrange/weak|break=weak|retest=none|entry=late|rr=0.09|mtf=n_a|vol=high|atr=normal|hard_wait:breakout_weak
+└─ correct? PASS
+
+┌─[11] 11_engulfing_at_level  ✓ PASS
+│ INPUT     : pair=EUR/USD  TFs=['M15']  bars_m15=80
+│ STRUCTURE : unclear  trend=bullish/1.00/smooth
+│ LEVELS    : nearest=1.1031396506431288 (resistance) dist=14.00ATR
+│ CANDLE    : bear_engulfing/midrange/weak
+│ BREAKOUT  : status=weak  retest=none  pullback=n_a
+│ ENTRY     : late  late_risk=True  zone=(1.10871, 1.10915)
+│ STOP/TGT  : stop=1.0998  target=1.10976  R/R=0.09  behind_swing_support|atr_2x_no_resistance
+│ MTF       : n_a
+│ VOL/ATR   : vol=high  atr_state=normal
+│ TRAPS     : fake_break=False liq_sweep=False
+│ WARNINGS  : none
+│ GRADE     : got=C  expect=[C..A+]  ✓
+│ PERMISSION: got=wait  expect=any  ✓
+│ REASON    : struct=unclear|trend=bullish/1.0/smooth|candle=bear_engulfing/midrange/weak|break=weak|retest=none|entry=late|rr=0.09|mtf=n_a|vol=high|atr=normal|hard_wait:breakout_weak
+└─ correct? PASS
+
+┌─[12] 12_engulfing_midrange  ✓ PASS
+│ INPUT     : pair=EUR/USD  TFs=['M15']  bars_m15=80
+│ STRUCTURE : unclear  trend=neutral/0.65/unclear
+│ LEVELS    : nearest=1.1001412602409741 (support) dist=1.03ATR
+│ CANDLE    : bear_engulfing/midrange/weak
+│ BREAKOUT  : status=fake  retest=failed  pullback=n_a
+│ ENTRY     : late  late_risk=True  zone=(1.10028, 1.10072)
+│ STOP/TGT  : stop=None  target=None  R/R=None  n_a|n_a
+│ MTF       : n_a
+│ VOL/ATR   : vol=normal  atr_state=normal
+│ TRAPS     : fake_break=True liq_sweep=False
+│ WARNINGS  : none
+│ GRADE     : got=C  expect=[C..C]  ✓
+│ PERMISSION: got=block  expect=any  ✓
+│ REASON    : struct=unclear|trend=neutral/0.65/unclear|candle=bear_engulfing/midrange/weak|break=fake|retest=failed|entry=late|rr=None|mtf=n_a|vol=normal|atr=normal|hard_block:fake_breakout
+└─ correct? PASS
+
+┌─[13] 13_pin_bar_at_level  ✓ PASS
+│ INPUT     : pair=EUR/USD  TFs=['M15']  bars_m15=80
+│ STRUCTURE : bos_down  trend=bearish/1.00/jagged
+│ LEVELS    : nearest=1.0940047935822497 (support) dist=5.35ATR
+│ CANDLE    : bull_engulfing/midrange/weak
+│ BREAKOUT  : status=weak  retest=none  pullback=n_a
+│ ENTRY     : late  late_risk=True  zone=(1.09203, 1.09247)
+│ STOP/TGT  : stop=1.0943  target=1.0916  R/R=0.32  behind_swing_resistance|atr_2x_no_support
+│ MTF       : n_a
+│ VOL/ATR   : vol=normal  atr_state=normal
+│ TRAPS     : fake_break=False liq_sweep=False
+│ WARNINGS  : none
+│ GRADE     : got=C  expect=[C..A+]  ✓
+│ PERMISSION: got=wait  expect=any  ✓
+│ REASON    : struct=bos_down|trend=bearish/1.0/jagged|candle=bull_engulfing/midrange/weak|break=weak|retest=none|entry=late|rr=0.32|mtf=n_a|vol=normal|atr=normal|hard_wait:breakout_weak
+└─ correct? PASS
+
+┌─[14] 14_pin_bar_midrange  ✓ PASS
+│ INPUT     : pair=EUR/USD  TFs=['M15']  bars_m15=80
+│ STRUCTURE : unclear  trend=bearish/1.00/smooth
+│ LEVELS    : nearest=1.1006037791036485 (resistance) dist=1.67ATR
+│ CANDLE    : doji/midrange/weak
+│ BREAKOUT  : status=fake  retest=pending  pullback=n_a
+│ ENTRY     : late  late_risk=True  zone=(1.09988, 1.10032)
+│ STOP/TGT  : stop=1.1007  target=1.0994  R/R=1.17  behind_swing_resistance|to_next_support
+│ MTF       : n_a
+│ VOL/ATR   : vol=normal  atr_state=normal
+│ TRAPS     : fake_break=True liq_sweep=False
+│ WARNINGS  : none
+│ GRADE     : got=C  expect=[C..C]  ✓
+│ PERMISSION: got=block  expect=any  ✓
+│ REASON    : struct=unclear|trend=bearish/1.0/smooth|candle=doji/midrange/weak|break=fake|retest=pending|entry=late|rr=1.17|mtf=n_a|vol=normal|atr=normal|hard_block:fake_breakout
+└─ correct? PASS
+
+┌─[15] 15_late_entry_chase  ✓ PASS
+│ INPUT     : pair=EUR/USD  TFs=['M15']  bars_m15=80
+│ STRUCTURE : bos_up  trend=bullish/1.00/smooth
+│ LEVELS    : nearest=1.1073364131673573 (resistance) dist=10.03ATR
+│ CANDLE    : momentum_bull/midrange/weak
+│ BREAKOUT  : status=real  retest=none  pullback=n_a
+│ ENTRY     : chase  late_risk=True  zone=(1.11405, 1.11449)
+│ STOP/TGT  : stop=1.10187  target=1.11565  R/R=0.11  behind_swing_support|atr_2x_no_resistance
+│ MTF       : n_a
+│ VOL/ATR   : vol=extreme  atr_state=normal
+│ TRAPS     : fake_break=False liq_sweep=False
+│ WARNINGS  : none
+│ GRADE     : got=C  expect=[C..C]  ✓
+│ PERMISSION: got=block  expect=block  ✓
+│ REASON    : struct=bos_up|trend=bullish/1.0/smooth|candle=momentum_bull/midrange/weak|break=real|retest=none|entry=chase|rr=0.11|mtf=n_a|vol=extreme|atr=normal|hard_block:chase_entry
+└─ correct? PASS
+
+┌─[16] 16_stop_too_tight_or_invalid  ✓ PASS
+│ INPUT     : pair=EUR/USD  TFs=['M15']  bars_m15=80
+│ STRUCTURE : unclear  trend=neutral/0.00/unclear
+│ LEVELS    : nearest=1.0999500000000015 (support) dist=0.50ATR
+│ CANDLE    : doji/at_support/strong
+│ BREAKOUT  : status=none  retest=none  pullback=n_a
+│ ENTRY     : good  late_risk=False  zone=(1.09978, 1.10022)
+│ STOP/TGT  : stop=None  target=None  R/R=None  n_a|n_a
+│ MTF       : n_a
+│ VOL/ATR   : vol=normal  atr_state=normal
+│ TRAPS     : fake_break=False liq_sweep=False
+│ WARNINGS  : none
+│ GRADE     : got=C  expect=[C..A+]  ✓
+│ PERMISSION: got=wait  expect=any  ✓
+│ REASON    : struct=unclear|trend=neutral/0.0/unclear|candle=doji/at_support/strong|break=none|retest=none|entry=good|rr=None|mtf=n_a|vol=normal|atr=normal|hard_wait:stop_undefined
+└─ correct? PASS
+
+┌─[17] 17_stop_too_wide_extreme_atr  ✓ PASS
+│ INPUT     : pair=EUR/USD  TFs=['M15']  bars_m15=80
+│ STRUCTURE : bos_up  trend=bullish/1.00/jagged
+│ LEVELS    : nearest=1.103356396906072 (resistance) dist=7.73ATR
+│ CANDLE    : momentum_bull/midrange/weak
+│ BREAKOUT  : status=fake  retest=pending  pullback=n_a
+│ ENTRY     : late  late_risk=True  zone=(1.11563, 1.11608)
+│ STOP/TGT  : stop=1.10104  target=1.11909  R/R=0.22  behind_swing_support|atr_2x_no_resistance
+│ MTF       : n_a
+│ VOL/ATR   : vol=extreme  atr_state=wide
+│ TRAPS     : fake_break=True liq_sweep=True
+│ WARNINGS  : ['liquidity_sweep_at_level']
+│ GRADE     : got=C  expect=[C..A+]  ✓
+│ PERMISSION: got=block  expect=any  ✓
+│ REASON    : struct=bos_up|trend=bullish/1.0/jagged|candle=momentum_bull/midrange/weak|break=fake|retest=pending|entry=late|rr=0.22|mtf=n_a|vol=extreme|atr=wide|hard_block:liquidity_sweep
+└─ correct? PASS
+
+┌─[18] 18_target_unrealistic  ✓ PASS
+│ INPUT     : pair=EUR/USD  TFs=['M15']  bars_m15=80
+│ STRUCTURE : unclear  trend=neutral/0.00/unclear
+│ LEVELS    : nearest=1.0999500000000015 (support) dist=0.50ATR
+│ CANDLE    : doji/at_support/strong
+│ BREAKOUT  : status=none  retest=none  pullback=n_a
+│ ENTRY     : good  late_risk=False  zone=(1.09978, 1.10022)
+│ STOP/TGT  : stop=None  target=None  R/R=None  n_a|n_a
+│ MTF       : n_a
+│ VOL/ATR   : vol=normal  atr_state=normal
+│ TRAPS     : fake_break=False liq_sweep=False
+│ WARNINGS  : none
+│ GRADE     : got=C  expect=[C..A+]  ✓
+│ PERMISSION: got=wait  expect=any  ✓
+│ REASON    : struct=unclear|trend=neutral/0.0/unclear|candle=doji/at_support/strong|break=none|retest=none|entry=good|rr=None|mtf=n_a|vol=normal|atr=normal|hard_wait:stop_undefined
+└─ correct? PASS
+
+┌─[19] 19_rr_weak_near_resistance  ✓ PASS
+│ INPUT     : pair=EUR/USD  TFs=['M15']  bars_m15=80
+│ STRUCTURE : unclear  trend=bullish/1.00/smooth
+│ LEVELS    : nearest=1.1009999999999995 (resistance) dist=3.33ATR
+│ CANDLE    : none/midrange/n_a
+│ BREAKOUT  : status=weak  retest=none  pullback=n_a
+│ ENTRY     : good  late_risk=False  zone=(1.10088, 1.10132)
+│ STOP/TGT  : stop=1.09989  target=1.10116  R/R=0.05  behind_swing_support|atr_2x_no_resistance
+│ MTF       : n_a
+│ VOL/ATR   : vol=low  atr_state=normal
+│ TRAPS     : fake_break=False liq_sweep=False
+│ WARNINGS  : none
+│ GRADE     : got=C  expect=[C..A+]  ✓
+│ PERMISSION: got=block  expect=any  ✓
+│ REASON    : struct=unclear|trend=bullish/1.0/smooth|candle=none/midrange/n_a|break=weak|retest=none|entry=good|rr=0.05|mtf=n_a|vol=low|atr=normal|hard_block:rr_too_low
+└─ correct? PASS
+
+┌─[20] 20_mtf_conflict_m15_vs_m5  ✓ PASS
+│ INPUT     : pair=EUR/USD  TFs=['M15', 'M5', 'M1']  bars_m15=80
+│ STRUCTURE : unclear  trend=bearish/1.00/smooth
+│ LEVELS    : nearest=None (none) dist=0.00ATR
+│ CANDLE    : none/midrange/n_a
+│ BREAKOUT  : status=pending  retest=failed  pullback=n_a
+│ ENTRY     : late  late_risk=True  zone=(1.08792, 1.08836)
+│ STOP/TGT  : stop=1.09053  target=1.08747  R/R=0.28  behind_recent_high|atr_2x_no_support
+│ MTF       : conflicting
+│ VOL/ATR   : vol=normal  atr_state=normal
+│ TRAPS     : fake_break=False liq_sweep=False
+│ WARNINGS  : ['mtf_conflict:M15_vs_M5_opposite']
+│ GRADE     : got=C  expect=[C..C]  ✓
+│ PERMISSION: got=block  expect=block  ✓
+│ REASON    : struct=unclear|trend=bearish/1.0/smooth|candle=none/midrange/n_a|break=pending|retest=failed|entry=late|rr=0.28|mtf=conflicting|vol=normal|atr=normal|hard_block:mtf_conflict
+└─ correct? PASS
+
+┌─[21] 21_sr_blocks_trade  ✓ PASS
+│ INPUT     : pair=EUR/USD  TFs=['M15']  bars_m15=80
+│ STRUCTURE : unclear  trend=bullish/1.00/smooth
+│ LEVELS    : nearest=1.1009999999999995 (resistance) dist=3.33ATR
+│ CANDLE    : none/midrange/n_a
+│ BREAKOUT  : status=weak  retest=none  pullback=n_a
+│ ENTRY     : good  late_risk=False  zone=(1.10088, 1.10132)
+│ STOP/TGT  : stop=1.09989  target=1.10116  R/R=0.05  behind_swing_support|atr_2x_no_resistance
+│ MTF       : n_a
+│ VOL/ATR   : vol=low  atr_state=normal
+│ TRAPS     : fake_break=False liq_sweep=False
+│ WARNINGS  : none
+│ GRADE     : got=C  expect=[C..A+]  ✓
+│ PERMISSION: got=block  expect=any  ✓
+│ REASON    : struct=unclear|trend=bullish/1.0/smooth|candle=none/midrange/n_a|break=weak|retest=none|entry=good|rr=0.05|mtf=n_a|vol=low|atr=normal|hard_block:rr_too_low
+└─ correct? PASS
+
+┌─[22] 22_atr_extreme  ✓ PASS
+│ INPUT     : pair=EUR/USD  TFs=['M15']  bars_m15=80
+│ STRUCTURE : bos_up  trend=bullish/1.00/jagged
+│ LEVELS    : nearest=1.103356396906072 (resistance) dist=7.73ATR
+│ CANDLE    : momentum_bull/midrange/weak
+│ BREAKOUT  : status=fake  retest=pending  pullback=n_a
+│ ENTRY     : late  late_risk=True  zone=(1.11563, 1.11608)
+│ STOP/TGT  : stop=1.10104  target=1.11909  R/R=0.22  behind_swing_support|atr_2x_no_resistance
+│ MTF       : n_a
+│ VOL/ATR   : vol=extreme  atr_state=wide
+│ TRAPS     : fake_break=True liq_sweep=True
+│ WARNINGS  : ['liquidity_sweep_at_level']
+│ GRADE     : got=C  expect=[C..A+]  ✓
+│ PERMISSION: got=block  expect=any  ✓
+│ REASON    : struct=bos_up|trend=bullish/1.0/jagged|candle=momentum_bull/midrange/weak|break=fake|retest=pending|entry=late|rr=0.22|mtf=n_a|vol=extreme|atr=wide|hard_block:liquidity_sweep
+└─ correct? PASS
+
+┌─[23] 23_atr_low_or_fake_then_reversal  ✓ PASS
+│ INPUT     : pair=EUR/USD  TFs=['M15']  bars_m15=80
+│ STRUCTURE : unclear  trend=bearish/1.00/smooth
+│ LEVELS    : nearest=1.0990989966735087 (support) dist=1.69ATR
+│ CANDLE    : doji/midrange/weak
+│ BREAKOUT  : status=fake  retest=pending  pullback=n_a
+│ ENTRY     : chase  late_risk=True  zone=(1.09976, 1.1002)
+│ STOP/TGT  : stop=1.10106  target=1.0991  R/R=0.81  behind_swing_resistance|to_next_support
+│ MTF       : n_a
+│ VOL/ATR   : vol=high  atr_state=wide
+│ TRAPS     : fake_break=True liq_sweep=False
+│ WARNINGS  : none
+│ GRADE     : got=C  expect=[C..A+]  ✓
+│ PERMISSION: got=block  expect=any  ✓
+│ REASON    : struct=unclear|trend=bearish/1.0/smooth|candle=doji/midrange/weak|break=fake|retest=pending|entry=chase|rr=0.81|mtf=n_a|vol=high|atr=wide|hard_block:fake_breakout
+└─ correct? PASS
+
+====================================================================================================
+FINAL: 23/23 PASSED  (100%)
+====================================================================================================

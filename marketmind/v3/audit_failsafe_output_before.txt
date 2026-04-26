@@ -1,0 +1,117 @@
+====================================================================================================
+MarketMind — Audit / Fail-Safe Test (15 سيناريو خطر)
+====================================================================================================
+
+┌─[01] dxy_missing_only_eurusd  ✗ FAIL
+│ permission=allow  expected_in=['wait', 'block']  ✗
+│ grade=A  data_quality=good  regime=trend
+│ warnings=none
+│ expected_warning_substr=dxy_coverage  ✗
+│ reason=regime_diag={'adx': 100.0, 'atr': 0.000248, 'atr_p95': 0.000286, 'whipsaws_10': 2, 'last_range_x_atr': 0.87}|dxy=down/0.411|risk=unclear/0.0|corr=unavailable/{}|contr={'count': 0, 'critical': 0, 'high
+│ FIX_NEEDED: perm allow not in ('wait', 'block'); missing warning 'dxy_coverage'
+└─ correct? FAIL
+
+┌─[02] yields_unavailable_normal  ✓ PASS
+│ permission=allow  expected_in=['allow', 'wait', 'block']  ✓
+│ grade=A+  data_quality=good  regime=trend
+│ warnings=none
+│ reason=regime_diag={'adx': 100.0, 'atr': 0.000248, 'atr_p95': 0.000286, 'whipsaws_10': 2, 'last_range_x_atr': 0.87}|dxy=down/0.417|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': -0.163}|contr={'count': 0,
+└─ correct? PASS
+
+┌─[03] gold_missing_risk_unclear  ✓ PASS
+│ permission=allow  expected_in=['allow', 'wait', 'block']  ✓
+│ grade=A+  data_quality=good  regime=trend
+│ warnings=none
+│ reason=regime_diag={'adx': 100.0, 'atr': 0.000248, 'atr_p95': 0.000286, 'whipsaws_10': 2, 'last_range_x_atr': 0.87}|dxy=down/0.417|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': -0.163}|contr={'count': 0,
+└─ correct? PASS
+
+┌─[04] gap_in_candles  ✓ PASS
+│ permission=wait  expected_in=['wait', 'block']  ✓
+│ grade=C  data_quality=degraded  regime=high_volatility
+│ warnings=['unexplained_gaps:3', 'atr_extreme:11.5x_p95']
+│ expected_warning_substr=gap  ✓
+│ reason=regime_diag={'adx': 2.7, 'atr': 0.003373, 'atr_p95': 0.000294, 'whipsaws_10': 4, 'last_range_x_atr': 0.06}|dxy=down/0.415|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': 0.094}|contr={'count': 0, 'c
+└─ correct? PASS
+
+┌─[05] spread_none_must_not_crash  ✓ PASS
+│ permission=allow  expected_in=['allow', 'wait', 'block']  ✓
+│ grade=A+  data_quality=good  regime=trend
+│ warnings=none
+│ reason=regime_diag={'adx': 100.0, 'atr': 0.000248, 'atr_p95': 0.000286, 'whipsaws_10': 2, 'last_range_x_atr': 0.87}|dxy=down/0.415|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': -0.163}|contr={'count': 0,
+└─ correct? PASS
+
+┌─[06] spread_extreme_must_block  ✓ PASS
+│ permission=block  expected_in=['block']  ✓
+│ grade=C  data_quality=partial  regime=trend
+│ warnings=['wide_spread:5.00pips_vs_0.56avg']
+│ reason=regime_diag={'adx': 100.0, 'atr': 0.000248, 'atr_p95': 0.000286, 'whipsaws_10': 2, 'last_range_x_atr': 0.87}|dxy=down/0.415|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': -0.163}|contr={'count': 0,
+└─ correct? PASS
+
+┌─[07] volatility_extreme_must_wait  ✓ PASS
+│ permission=wait  expected_in=['wait', 'block']  ✓
+│ grade=C  data_quality=degraded  regime=high_volatility
+│ warnings=['wide_spread:2.50pips_vs_0.53avg', 'atr_extreme:4.3x_p95', 'rapid_move_check_chase_risk']
+│ reason=regime_diag={'adx': 93.9, 'atr': 0.000964, 'atr_p95': 0.000223, 'whipsaws_10': 7, 'last_range_x_atr': 11.41}|dxy=down/0.12|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': -0.021}|contr={'count': 1, 
+└─ correct? PASS
+
+┌─[08] news_block_must_inherit  ✓ PASS
+│ permission=block  expected_in=['block']  ✓
+│ grade=C  data_quality=good  regime=trend
+│ warnings=none
+│ reason=regime_diag={'adx': 100.0, 'atr': 0.000248, 'atr_p95': 0.000286, 'whipsaws_10': 2, 'last_range_x_atr': 0.87}|dxy=down/0.415|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': -0.163}|contr={'count': 0,
+└─ correct? PASS
+
+┌─[09] no_news_clean_trend_acceptable  ✓ PASS
+│ permission=allow  expected_in=['allow', 'wait']  ✓
+│ grade=A+  data_quality=good  regime=trend
+│ warnings=none
+│ reason=regime_diag={'adx': 100.0, 'atr': 0.000219, 'atr_p95': 0.000221, 'whipsaws_10': 0, 'last_range_x_atr': 1.0}|dxy=down/0.416|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': -0.156, 'EURUSD_vs_GOLD': 0
+└─ correct? PASS
+
+┌─[10] correlation_unavailable_must_be_safe  ✓ PASS
+│ permission=allow  expected_in=['wait', 'block', 'allow']  ✓
+│ grade=A  data_quality=good  regime=trend
+│ warnings=none
+│ reason=regime_diag={'adx': 100.0, 'atr': 0.000248, 'atr_p95': 0.000286, 'whipsaws_10': 2, 'last_range_x_atr': 0.87}|dxy=down/0.411|risk=unclear/0.0|corr=unavailable/{}|contr={'count': 0, 'critical': 0, 'high
+└─ correct? PASS
+
+┌─[11] unknown_pair_must_block  ✓ PASS
+│ permission=block  expected_in=['block']  ✓
+│ grade=C  data_quality=missing  regime=unclear
+│ warnings=none
+│ reason=no_bars_for_pair
+└─ correct? PASS
+
+┌─[12] session_off_handled  ✓ PASS
+│ permission=allow  expected_in=['allow', 'wait', 'block']  ✓
+│ grade=A  data_quality=partial  regime=trend
+│ warnings=['stale_data:1935min']
+│ reason=regime_diag={'adx': 100.0, 'atr': 0.000248, 'atr_p95': 0.000286, 'whipsaws_10': 2, 'last_range_x_atr': 0.87}|dxy=down/0.415|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': -0.163}|contr={'count': 0,
+└─ correct? PASS
+
+┌─[13] very_few_bars_must_wait  ✓ PASS
+│ permission=wait  expected_in=['wait', 'block']  ✓
+│ grade=C  data_quality=missing  regime=unclear
+│ warnings=['insufficient_bars', 'dxy_coverage_0.14_below_0.5']
+│ reason=regime_diag={'reason': 'insufficient_history'}|dxy=down/0.433|risk=unclear/0.0|corr=unavailable/{}|contr={'count': 0, 'critical': 0, 'high': 0, 'medium': 0, 'labels': []}|hard_wait:data_missing
+└─ correct? PASS
+
+┌─[14] future_dated_bars_handled  ✓ PASS
+│ permission=allow  expected_in=['allow', 'wait', 'block']  ✓
+│ grade=A+  data_quality=good  regime=trend
+│ warnings=none
+│ reason=regime_diag={'adx': 100.0, 'atr': 0.000248, 'atr_p95': 0.000286, 'whipsaws_10': 2, 'last_range_x_atr': 0.87}|dxy=down/0.415|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': -0.163}|contr={'count': 0,
+└─ correct? PASS
+
+┌─[15] all_sources_stale_flagged  ✓ PASS
+│ permission=allow  expected_in=['allow', 'wait', 'block']  ✓
+│ grade=A+  data_quality=good  regime=trend
+│ warnings=none
+│ reason=regime_diag={'adx': 100.0, 'atr': 0.000248, 'atr_p95': 0.000286, 'whipsaws_10': 2, 'last_range_x_atr': 0.87}|dxy=down/0.415|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': -0.163}|contr={'count': 0,
+└─ correct? PASS
+
+====================================================================================================
+FINAL: 14/15 PASSED  (93%)
+FAILS:
+  [01] dxy_missing_only_eurusd — perm allow not in ('wait', 'block'); missing warning 'dxy_coverage'
+====================================================================================================

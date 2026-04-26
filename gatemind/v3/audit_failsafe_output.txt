@@ -1,0 +1,112 @@
+====================================================================================================
+GateMind — Audit / Fail-Safe (19 سيناريو خطر)
+====================================================================================================
+
+[01] brain_news_missing  ✓ PASS
+  decision=block  expected_in=['block', 'wait']
+  blocking=['missing_brain_input', 'news_gate_block:no_news_input']
+  reason=BLOCK: missing_brain_input | news_gate_block:no_news_input
+
+[02] brain_market_missing  ✓ PASS
+  decision=block  expected_in=['block', 'wait']
+  blocking=['missing_brain_input']
+  reason=BLOCK: missing_brain_input
+
+[03] brain_chart_missing  ✓ PASS
+  decision=block  expected_in=['block', 'wait']
+  blocking=['missing_brain_input']
+  reason=BLOCK: missing_brain_input
+
+[04] state_missing  ✓ PASS
+  decision=block  expected_in=['block']
+  blocking=['execution_broker_unsafe:no_state']
+  reason=BLOCK: execution_broker_unsafe:no_state
+
+[05] now_utc_none_falls_back_to_real  ✓ PASS
+  decision=block  expected_in=['enter', 'wait', 'block']
+  blocking=['session_outside:ny_time=00:02 not_in_[(3, 5), (8, 12)]']
+  reason=BLOCK: session_outside:ny_time=00:02 not_in_[(3, 5), (8, 12)]
+
+[06] atr_zero  ✓ PASS
+  decision=enter  expected_in=['enter', 'wait', 'block']
+  blocking=[]
+  reason=ENTER: aligned/buy all_grades_top conf=0.8 rr=2.0
+
+[07] spread_none  ✓ PASS
+  decision=wait  expected_in=['block', 'wait']
+  blocking=[]
+  reason=WAIT: execution_spread_unknown
+
+[08] unknown_pair  ✓ PASS
+  decision=block  expected_in=['block']
+  blocking=['execution_unknown_pair:pair_ZZZ/YYY_not_in_PAIR_STATUS']
+  reason=BLOCK: execution_unknown_pair:pair_ZZZ/YYY_not_in_PAIR_STATUS
+
+[09] outside_session  ✓ PASS
+  decision=block  expected_in=['block']
+  blocking=['session_outside:ny_time=02:00 not_in_[(3, 5), (8, 12)]']
+  reason=BLOCK: session_outside:ny_time=02:00 not_in_[(3, 5), (8, 12)]
+
+[10] daily_loss_at_limit  ✓ PASS
+  decision=block  expected_in=['block']
+  blocking=['state_blocked_by_loss_limit:daily_loss=5.00%>=5.00%', 'daily_loss_limit_hit']
+  reason=BLOCK: state_blocked_by_loss_limit:daily_loss=5.00%>=5.00% | daily_loss_limit_hit
+
+[11] consecutive_losses_3  ✓ PASS
+  decision=block  expected_in=['block']
+  blocking=['state_after_3_losses_cooldown:3+_consecutive_losses_no_cooldown_set']
+  reason=BLOCK: state_after_3_losses_cooldown:3+_consecutive_losses_no_cooldown_set
+
+[12] open_position  ✓ PASS
+  decision=block  expected_in=['block']
+  blocking=['state_position_already_open:open_position_EUR/USD_buy_1000']
+  reason=BLOCK: state_position_already_open:open_position_EUR/USD_buy_1000
+
+[13] pair_disabled  ✓ PASS
+  decision=block  expected_in=['block']
+  blocking=['execution_disabled_pair:pair_GBP/USD_disabled']
+  reason=BLOCK: execution_disabled_pair:pair_GBP/USD_disabled
+
+[14] monitoring_live_blocked  ✓ PASS
+  decision=block  expected_in=['block']
+  blocking=['risk_stop_too_wide:risk_atr=3.00', 'execution_monitoring_pair_live_blocked:pair_monitoring_cannot_go_live']
+  reason=BLOCK: risk_stop_too_wide:risk_atr=3.00 | execution_monitoring_pair_live_blocked:pair_monitoring_cannot_go_live
+
+[15] broker_mode_unknown  ✓ PASS
+  decision=block  expected_in=['block']
+  blocking=['execution_broker_unsafe:broker_mode_unknown:weird_mode']
+  reason=BLOCK: execution_broker_unsafe:broker_mode_unknown:weird_mode
+
+[16] rr_below_0.8  ✓ PASS
+  decision=block  expected_in=['block']
+  blocking=['risk_rr_too_low:rr=0.50']
+  reason=BLOCK: risk_rr_too_low:rr=0.50
+
+[17] latency_too_high  ✓ PASS
+  decision=block  expected_in=['block']
+  blocking=['state_data_stale:latency=2000.0ms>1000.0ms']
+  reason=BLOCK: state_data_stale:latency=2000.0ms>1000.0ms
+
+[18] confidence_very_low  ✓ PASS
+  decision=wait  expected_in=['wait', 'block']
+  blocking=[]
+  reason=WAIT: low_confidence:0.20<0.6
+
+[19] daily_trade_limit  ✓ PASS
+  decision=block  expected_in=['block']
+  blocking=['state_blocked_by_trade_limit:trades_today=10>=10', 'daily_trade_limit_hit']
+  reason=BLOCK: state_blocked_by_trade_limit:trades_today=10>=10 | daily_trade_limit_hit
+
+[20] pending_order_exists  ✓ PASS
+  decision=block  expected_in=['block']
+  blocking=['state_pending_order_exists:pending_EUR/USD_sell_500']
+  reason=BLOCK: state_pending_order_exists:pending_EUR/USD_sell_500
+
+[21] stop_too_tight  ✓ PASS
+  decision=block  expected_in=['block']
+  blocking=['risk_stop_too_tight:risk_atr=0.10']
+  reason=BLOCK: risk_stop_too_tight:risk_atr=0.10
+
+====================================================================================================
+FINAL: 21/21 PASSED  (100%)
+====================================================================================================

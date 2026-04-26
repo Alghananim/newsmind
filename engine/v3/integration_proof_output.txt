@@ -1,0 +1,197 @@
+
+====================================================================================================
+SCENARIO: 01_all_AA_plus_aligned
+====================================================================================================
+
+[STEP 1] NewsMind.evaluate()
+  → grade=A+  permission=allow
+  → bias=bullish  freshness=fresh
+  → reason=fresh_verified|iq:event:US_CPI,surprise:-0.33,cold
+
+[STEP 2] MarketMind.assess()  (receives NewsMind verdict)
+  → grade=B  permission=wait
+  → regime=trend  direction=bearish
+  → dollar_bias=neutral  risk_mode=unclear
+  → news_alignment=divergent
+  → contradictions=['news_bullish_but_market_bearish_divergent']
+
+[STEP 3] ChartMind.assess()  (receives bars + market context)
+  → grade=C  permission=wait
+  → structure=unclear  trend=bullish
+  → entry_quality=late  rr=0.27
+  → fake_breakout=False  late_entry=True
+  → stop=1.10753  target=1.11001
+
+[STEP 4] GateMind.decide()  (receives all 3 brain verdicts)
+  [GATE IS THE ONLY ENTRY POINT — NO BRAIN CAN BYPASS THIS]
+  → final_decision=block
+  → audit_id=6578c909-a90...
+  → reason=BLOCK: chart_grade_C | risk_stop_too_wide:risk_atr=107.53 | execution_broker_unsafe:broker_mode_unknown:practice
+
+[STEP 5] SmartNoteBook journal verification
+  → events_recorded: 1
+  → trades_recorded: 0
+  → event[0].audit_id matches result: True
+  → event[0].mind_outputs.news_grade: A+
+  → event[0].mind_outputs.market_grade: B
+  → event[0].mind_outputs.chart_grade: C
+  → event[0].mind_outputs.gate_decision: block
+  → event[0].rejected_reason: BLOCK: chart_grade_C | risk_stop_too_wide:risk_atr=107.53 | execution_broker_uns
+
+✅ CORRECT: expected=block got=block
+
+====================================================================================================
+SCENARIO: 02_one_brain_B_should_wait
+====================================================================================================
+
+[STEP 1] NewsMind.evaluate()
+  → grade=A  permission=allow
+  → bias=unclear  freshness=fresh
+  → reason=fresh_verified
+
+[STEP 2] MarketMind.assess()  (receives NewsMind verdict)
+  → grade=C  permission=wait
+  → regime=unclear  direction=neutral
+  → dollar_bias=neutral  risk_mode=unclear
+  → news_alignment=no_clear_signal
+  → contradictions=none
+
+[STEP 3] ChartMind.assess()  (receives bars + market context)
+  → grade=C  permission=wait
+  → structure=range  trend=neutral
+  → entry_quality=excellent  rr=None
+  → fake_breakout=False  late_entry=False
+  → stop=None  target=None
+
+[STEP 4] GateMind.decide()  (receives all 3 brain verdicts)
+  [GATE IS THE ONLY ENTRY POINT — NO BRAIN CAN BYPASS THIS]
+  → final_decision=block
+  → audit_id=7120210a-50f...
+  → reason=BLOCK: market_grade_C | chart_grade_C | risk_missing:stop_or_target_or_entry_missing
+
+[STEP 5] SmartNoteBook journal verification
+  → events_recorded: 1
+  → trades_recorded: 0
+  → event[0].audit_id matches result: True
+  → event[0].mind_outputs.news_grade: A
+  → event[0].mind_outputs.market_grade: C
+  → event[0].mind_outputs.chart_grade: C
+  → event[0].mind_outputs.gate_decision: block
+  → event[0].rejected_reason: BLOCK: market_grade_C | chart_grade_C | risk_missing:stop_or_target_or_entry_mis
+
+✅ CORRECT: expected=block got=block
+
+====================================================================================================
+SCENARIO: 03_one_brain_C_should_block
+====================================================================================================
+
+[STEP 1] NewsMind.evaluate()
+  → grade=A  permission=allow
+  → bias=bullish  freshness=fresh
+  → reason=fresh_verified|iq:event:ECB_DECISION,hawkish
+
+[STEP 2] MarketMind.assess()  (receives NewsMind verdict)
+  → grade=A+  permission=allow
+  → regime=trend  direction=bullish
+  → dollar_bias=neutral  risk_mode=unclear
+  → news_alignment=aligned
+  → contradictions=none
+
+[STEP 3] ChartMind.assess()  (receives bars + market context)
+  → grade=C  permission=wait
+  → structure=unclear  trend=bullish
+  → entry_quality=late  rr=0.27
+  → fake_breakout=False  late_entry=True
+  → stop=1.10627  target=1.10834
+
+[STEP 4] GateMind.decide()  (receives all 3 brain verdicts)
+  [GATE IS THE ONLY ENTRY POINT — NO BRAIN CAN BYPASS THIS]
+  → final_decision=block
+  → audit_id=ac42d55c-39a...
+  → reason=BLOCK: chart_grade_C | risk_stop_too_wide:risk_atr=106.27 | execution_broker_unsafe:broker_mode_unknown:practice
+
+[STEP 5] SmartNoteBook journal verification
+  → events_recorded: 1
+  → trades_recorded: 0
+  → event[0].audit_id matches result: True
+  → event[0].mind_outputs.news_grade: A
+  → event[0].mind_outputs.market_grade: A+
+  → event[0].mind_outputs.chart_grade: C
+  → event[0].mind_outputs.gate_decision: block
+  → event[0].rejected_reason: BLOCK: chart_grade_C | risk_stop_too_wide:risk_atr=106.27 | execution_broker_uns
+
+✅ CORRECT: expected=block got=block
+
+====================================================================================================
+SCENARIO: 04_news_block_high_impact
+====================================================================================================
+
+[STEP 1] NewsMind.evaluate()
+  → grade=A+  permission=allow
+  → bias=bullish  freshness=fresh
+  → reason=fresh_verified|iq:event:FED_SPEAKER,dovish
+
+[STEP 2] MarketMind.assess()  (receives NewsMind verdict)
+  → grade=B  permission=wait
+  → regime=trend  direction=bearish
+  → dollar_bias=neutral  risk_mode=unclear
+  → news_alignment=divergent
+  → contradictions=['news_bullish_but_market_bearish_divergent']
+
+[STEP 3] ChartMind.assess()  (receives bars + market context)
+  → grade=C  permission=wait
+  → structure=unclear  trend=bullish
+  → entry_quality=late  rr=0.27
+  → fake_breakout=False  late_entry=True
+  → stop=1.10627  target=1.10834
+
+[STEP 4] GateMind.decide()  (receives all 3 brain verdicts)
+  [GATE IS THE ONLY ENTRY POINT — NO BRAIN CAN BYPASS THIS]
+  → final_decision=block
+  → audit_id=222cbaec-044...
+  → reason=BLOCK: chart_grade_C | risk_stop_too_wide:risk_atr=106.27 | execution_broker_unsafe:broker_mode_unknown:practice
+
+[STEP 5] SmartNoteBook journal verification
+  → events_recorded: 1
+  → trades_recorded: 0
+  → event[0].audit_id matches result: True
+  → event[0].mind_outputs.news_grade: A+
+  → event[0].mind_outputs.market_grade: B
+  → event[0].mind_outputs.chart_grade: C
+  → event[0].mind_outputs.gate_decision: block
+  → event[0].rejected_reason: BLOCK: chart_grade_C | risk_stop_too_wide:risk_atr=106.27 | execution_broker_uns
+
+✅ CORRECT: expected=block got=block
+
+====================================================================================================
+SCENARIO: 05_chart_says_enter_but_gate_blocks (outside session)
+====================================================================================================
+
+[STEP 1] NewsMind: grade=C perm=wait
+[STEP 2] MarketMind: grade=C perm=wait
+[STEP 3] ChartMind: grade=C perm=wait
+[STEP 4] GateMind decision: block
+[STEP 4] reason: BLOCK: news_grade_C | market_grade_C | chart_grade_C
+[STEP 5] SmartNoteBook events: 1
+  → rejected_reason: BLOCK: news_grade_C | market_grade_C | chart_grade_C
+
+✅ expected=block (outside session), got=block
+
+
+====================================================================================================
+FINAL INTEGRATION PROOF SUMMARY
+====================================================================================================
+Scenario                                Gate                     Audit ID match    Correct
+----------------------------------------------------------------------------------------------------
+01_all_AA_plus_aligned                  block                    ✓                 ✓
+02_one_brain_B_should_wait              block                    ✓                 ✓
+03_one_brain_C_should_block             block                    ✓                 ✓
+04_news_block_high_impact               block                    ✓                 ✓
+05_chart_enter_but_gate_blocks_session  block                    ✓                 ✓
+----------------------------------------------------------------------------------------------------
+
+Integrated brains: NewsMind → MarketMind → ChartMind → GateMind → SmartNoteBook
+Sequence verification: 5/5 scenarios behaved correctly
+Gate exclusivity: ALL 5 scenarios went through GateMind (no bypass found)
+SmartNoteBook journaling: 4 events recorded total
+====================================================================================================

@@ -1,0 +1,35 @@
+====================================================================================================
+SmartNoteBook V4 — Speed + Intelligence Cert (15 سيناريو)
+====================================================================================================
+
+[01] single_trade_write_warm   : ✓ 0.482ms (≤2.0ms)
+[02] 100_trades_write         : ✓ 32ms total, avg 0.315ms
+[03] 1000_events_sync          : ✓ 252ms total, avg 0.252ms
+[04] query_why_lose            : ✓ 2.82ms (≤50ms)
+[05] daily_summary             : ✓ 25.86ms n_trades=102
+[06] pattern_detection         : ✓ 1.98ms keys=['avg_pnl_by_grade', 'grade_calibration_ok', 'brain_overconfidence']
+[07] classification_accuracy   : ✓ 5/5 (100%)
+[08] anti_overfitting          : ✓ lessons=1 all_≥3?=True
+[09] duplicate_detection       : ✓
+[10] missing_id_rejected       : ✓
+[11] storage_health            : ✓ warnings
+[12] speed_score               : ✓ 1.0
+[13] intelligence_score        : ✓ 0.963
+[14] async_1000_events         : ✓ submit=46ms total (0.0460ms/event)
+[15] health_report_complete    : ✓ missing=none
+
+====================================================================================================
+METRICS:
+  trade_log_avg_ms      : 0.318
+  event_write_avg_ms    : 0.232
+  query_avg_ms          : 2.810
+  daily_summary_avg_ms  : 25.833
+  dropped_events        : 0
+  duplicate_events      : 1
+  storage_health        : ok
+  intelligence_score    : 0.963
+  speed_score           : 1.0
+
+====================================================================================================
+FINAL: 15/15 PASSED
+====================================================================================================

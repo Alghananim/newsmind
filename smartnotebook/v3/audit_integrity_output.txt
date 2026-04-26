@@ -1,0 +1,25 @@
+====================================================================================================
+SmartNoteBook — Integrity Audit (18 سيناريو)
+====================================================================================================
+[PASS] 01_no_data_loss_1000_trades  stored=1000/1000
+[PASS] 02_no_async_data_loss_1000  stored=1000/1000 dropped=0
+[PASS] 03_pl_sum_correct  got=0.0000 expected=0.0000
+[PASS] 04_win_rate_correct  got=0.5 expected=0.5
+[PASS] 05_pf_handles_no_losses  pf=0.01
+[PASS] 06_pf_handles_no_wins  pf=0.0
+[PASS] 07_spread_loss_attribution  cls=spread_loss resp=execution
+[PASS] 08_valid_loss_no_blame  cls=valid_loss resp=none
+[PASS] 09_logical_win_correct  cls=logical_win
+[PASS] 10_misaligned_classified  cls=bad_loss_misaligned
+[PASS] 11_duplicate_trade_id_detected  
+[PASS] 12_missing_id_storage_rejection  
+[PASS] 13_invalid_path_fails_loud  
+[PASS] 14_system_mode_preserved  modes=['backtest', 'live', 'paper']
+[PASS] 15_block_event_recorded  n_blocks=1
+[PASS] 16_mind_outputs_preserved  
+[PASS] 17_empty_weekly_no_crash  
+[PASS] 18_pnl_pct_preserved  
+
+====================================================================================================
+FINAL: 18/18 PASSED
+====================================================================================================

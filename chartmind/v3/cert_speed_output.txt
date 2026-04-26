@@ -1,0 +1,204 @@
+====================================================================================================
+ChartMind V4 — Speed + Intelligence Cert (15 سيناريو)
+====================================================================================================
+
+┌─[01] 01_real_breakout_fast  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars_m15=80 TFs=['M15']
+│ LATENCY     : total=0.177ms  cold=0.492ms  warm=0.197ms
+│ STAGES      : data_load=0.001 struct=0.007 feature=0.006 sr=0.033
+│              candle=0.011 break=0.006 rr=0.007
+│ BOTTLENECK  : support_resistance
+│ INTELLIGENCE: chart=0.337 entry=0.8 mtf=0.7 dq=1.0 speed=1.0
+│ STRUCT/TREND: struct=unclear trend=bullish/1.00/smooth
+│ FAKE/LATE   : fake_break=False late=False liq_sweep=False
+│ DECISION    : grade=C  permission=block  expect=any
+│ REASON      : struct=unclear|trend=bullish/1.0/smooth|candle=none/midrange/n_a|break=none|retest=none|entry=good|rr=0.19|mtf=n_a|vol=low|atr=normal|hard_block:rr_too_low
+└─ correct? PASS
+
+┌─[02] 02_fake_breakout_fast  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars_m15=81 TFs=['M15']
+│ LATENCY     : total=0.165ms  cold=0.430ms  warm=0.183ms
+│ STAGES      : data_load=0.001 struct=0.008 feature=0.005 sr=0.03
+│              candle=0.009 break=0.008 rr=0.007
+│ BOTTLENECK  : support_resistance
+│ INTELLIGENCE: chart=0.431 entry=0.2 mtf=0.7 dq=1.0 speed=1.0
+│ STRUCT/TREND: struct=bos_down trend=bearish/0.29/unclear
+│ FAKE/LATE   : fake_break=False late=True liq_sweep=False
+│ DECISION    : grade=C  permission=wait  expect=any
+│ REASON      : struct=bos_down|trend=bearish/0.29/unclear|candle=none/at_support/n_a|break=pending|retest=successful|entry=late|rr=1.09|mtf=n_a|vol=normal|atr=normal|hard_wait:entry_late
+└─ correct? PASS
+
+┌─[03] 03_late_entry_chase  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars_m15=80 TFs=['M15']
+│ LATENCY     : total=0.202ms  cold=0.390ms  warm=0.233ms
+│ STAGES      : data_load=0.001 struct=0.006 feature=0.005 sr=0.012
+│              candle=0.009 break=0.008 rr=0.007
+│ BOTTLENECK  : multi_timeframe
+│ INTELLIGENCE: chart=0.419 entry=0.0 mtf=0.7 dq=1.0 speed=1.0
+│ STRUCT/TREND: struct=bos_up trend=bullish/1.00/smooth
+│ FAKE/LATE   : fake_break=False late=True liq_sweep=False
+│ DECISION    : grade=C  permission=block  expect=block
+│ REASON      : struct=bos_up|trend=bullish/1.0/smooth|candle=momentum_bull/midrange/weak|break=real|retest=none|entry=chase|rr=0.11|mtf=n_a|vol=high|atr=normal|hard_block:chase_entry
+└─ correct? PASS
+
+┌─[04] 04_candle_in_midrange  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars_m15=80 TFs=['M15']
+│ LATENCY     : total=0.145ms  cold=0.355ms  warm=0.163ms
+│ STAGES      : data_load=0.001 struct=0.006 feature=0.006 sr=0.011
+│              candle=0.009 break=0.007 rr=0.007
+│ BOTTLENECK  : multi_timeframe
+│ INTELLIGENCE: chart=0.675 entry=0.2 mtf=0.7 dq=1.0 speed=1.0
+│ STRUCT/TREND: struct=downtrend trend=bearish/1.00/unclear
+│ FAKE/LATE   : fake_break=False late=True liq_sweep=False
+│ DECISION    : grade=C  permission=wait  expect=any
+│ REASON      : struct=downtrend|trend=bearish/1.0/unclear|candle=doji/midrange/weak|break=pending|retest=pending|entry=late|rr=1.58|mtf=n_a|vol=normal|atr=normal|hard_wait:retest_pending
+└─ correct? PASS
+
+┌─[05] 05_pin_at_real_support  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars_m15=80 TFs=['M15']
+│ LATENCY     : total=0.155ms  cold=0.360ms  warm=0.172ms
+│ STAGES      : data_load=0.001 struct=0.006 feature=0.005 sr=0.011
+│              candle=0.009 break=0.008 rr=0.007
+│ BOTTLENECK  : multi_timeframe
+│ INTELLIGENCE: chart=0.331 entry=0.2 mtf=0.7 dq=1.0 speed=1.0
+│ STRUCT/TREND: struct=bos_down trend=bearish/1.00/jagged
+│ FAKE/LATE   : fake_break=False late=True liq_sweep=False
+│ DECISION    : grade=C  permission=wait  expect=any
+│ REASON      : struct=bos_down|trend=bearish/1.0/jagged|candle=doji/midrange/weak|break=weak|retest=none|entry=late|rr=0.3|mtf=n_a|vol=normal|atr=normal|hard_wait:breakout_weak
+└─ correct? PASS
+
+┌─[06] 06_pin_midrange  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars_m15=80 TFs=['M15']
+│ LATENCY     : total=0.137ms  cold=0.331ms  warm=0.191ms
+│ STAGES      : data_load=0.001 struct=0.006 feature=0.006 sr=0.01
+│              candle=0.009 break=0.007 rr=0.007
+│ BOTTLENECK  : trend
+│ INTELLIGENCE: chart=0.675 entry=0.2 mtf=0.7 dq=1.0 speed=1.0
+│ STRUCT/TREND: struct=downtrend trend=bearish/1.00/unclear
+│ FAKE/LATE   : fake_break=False late=True liq_sweep=False
+│ DECISION    : grade=C  permission=wait  expect=any
+│ REASON      : struct=downtrend|trend=bearish/1.0/unclear|candle=doji/midrange/weak|break=pending|retest=pending|entry=late|rr=1.58|mtf=n_a|vol=normal|atr=normal|hard_wait:retest_pending
+└─ correct? PASS
+
+┌─[07] 07_fake_then_reverse  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars_m15=81 TFs=['M15']
+│ LATENCY     : total=0.165ms  cold=0.424ms  warm=0.183ms
+│ STAGES      : data_load=0.001 struct=0.007 feature=0.006 sr=0.03
+│              candle=0.01 break=0.008 rr=0.007
+│ BOTTLENECK  : support_resistance
+│ INTELLIGENCE: chart=0.431 entry=0.2 mtf=0.7 dq=1.0 speed=1.0
+│ STRUCT/TREND: struct=bos_down trend=bearish/0.29/unclear
+│ FAKE/LATE   : fake_break=False late=True liq_sweep=False
+│ DECISION    : grade=C  permission=wait  expect=any
+│ REASON      : struct=bos_down|trend=bearish/0.29/unclear|candle=none/at_support/n_a|break=pending|retest=successful|entry=late|rr=1.09|mtf=n_a|vol=normal|atr=normal|hard_wait:entry_late
+└─ correct? PASS
+
+┌─[08] 08_clear_trend  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars_m15=80 TFs=['M15']
+│ LATENCY     : total=0.126ms  cold=0.378ms  warm=0.144ms
+│ STAGES      : data_load=0.001 struct=0.005 feature=0.005 sr=0.005
+│              candle=0.009 break=0.004 rr=0.007
+│ BOTTLENECK  : multi_timeframe
+│ INTELLIGENCE: chart=0.3 entry=0.2 mtf=0.7 dq=1.0 speed=1.0
+│ STRUCT/TREND: struct=unclear trend=bullish/1.00/smooth
+│ FAKE/LATE   : fake_break=False late=True liq_sweep=False
+│ DECISION    : grade=C  permission=wait  expect=any
+│ REASON      : struct=unclear|trend=bullish/1.0/smooth|candle=none/midrange/n_a|break=pending|retest=pending|entry=late|rr=0.27|mtf=n_a|vol=normal|atr=normal|hard_wait:retest_pending
+└─ correct? PASS
+
+┌─[09] 09_trend_weakening  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars_m15=80 TFs=['M15']
+│ LATENCY     : total=0.162ms  cold=0.352ms  warm=0.179ms
+│ STAGES      : data_load=0.001 struct=0.006 feature=0.005 sr=0.015
+│              candle=0.009 break=0.006 rr=0.007
+│ BOTTLENECK  : support_resistance
+│ INTELLIGENCE: chart=0.456 entry=0.2 mtf=0.7 dq=1.0 speed=1.0
+│ STRUCT/TREND: struct=bos_down trend=bearish/1.00/jagged
+│ FAKE/LATE   : fake_break=False late=True liq_sweep=False
+│ DECISION    : grade=C  permission=wait  expect=any
+│ REASON      : struct=bos_down|trend=bearish/1.0/jagged|candle=none/at_support/n_a|break=none|retest=none|entry=late|rr=2.13|mtf=n_a|vol=normal|atr=normal|hard_wait:entry_late
+└─ correct? PASS
+
+┌─[10] 10_choppy  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars_m15=80 TFs=['M15']
+│ LATENCY     : total=0.154ms  cold=0.366ms  warm=0.171ms
+│ STAGES      : data_load=0.001 struct=0.006 feature=0.005 sr=0.019
+│              candle=0.007 break=0.006 rr=0.006
+│ BOTTLENECK  : support_resistance
+│ INTELLIGENCE: chart=0.1 entry=0.2 mtf=0.7 dq=1.0 speed=1.0
+│ STRUCT/TREND: struct=unclear trend=bullish/0.00/jagged
+│ FAKE/LATE   : fake_break=False late=True liq_sweep=False
+│ DECISION    : grade=C  permission=wait  expect=wait
+│ REASON      : struct=unclear|trend=bullish/0.0/jagged|candle=bull_engulfing/at_resistance/late|break=none|retest=none|entry=late|rr=0.18|mtf=n_a|vol=normal|atr=normal|hard_wait:entry_late
+└─ correct? PASS
+
+┌─[11] 11_atr_extreme_high  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars_m15=80 TFs=['M15']
+│ LATENCY     : total=0.154ms  cold=0.344ms  warm=0.220ms
+│ STAGES      : data_load=0.001 struct=0.006 feature=0.005 sr=0.013
+│              candle=0.009 break=0.008 rr=0.006
+│ BOTTLENECK  : support_resistance
+│ INTELLIGENCE: chart=0.019 entry=0.2 mtf=0.7 dq=1.0 speed=1.0
+│ STRUCT/TREND: struct=bos_up trend=bullish/1.00/jagged
+│ FAKE/LATE   : fake_break=True late=True liq_sweep=True
+│ DECISION    : grade=C  permission=block  expect=any
+│ REASON      : struct=bos_up|trend=bullish/1.0/jagged|candle=momentum_bull/midrange/weak|break=fake|retest=pending|entry=late|rr=0.22|mtf=n_a|vol=extreme|atr=wide|hard_block:liquidity_sweep
+└─ correct? PASS
+
+┌─[12] 12_atr_extremely_low  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars_m15=80 TFs=['M15']
+│ LATENCY     : total=0.149ms  cold=0.384ms  warm=0.166ms
+│ STAGES      : data_load=0.001 struct=0.006 feature=0.005 sr=0.029
+│              candle=0.008 break=0.006 rr=0.001
+│ BOTTLENECK  : support_resistance
+│ INTELLIGENCE: chart=0.638 entry=0.8 mtf=0.7 dq=1.0 speed=1.0
+│ STRUCT/TREND: struct=unclear trend=neutral/0.00/unclear
+│ FAKE/LATE   : fake_break=False late=False liq_sweep=False
+│ DECISION    : grade=C  permission=wait  expect=any
+│ REASON      : struct=unclear|trend=neutral/0.0/unclear|candle=doji/at_support/strong|break=none|retest=none|entry=good|rr=None|mtf=n_a|vol=normal|atr=normal|hard_wait:stop_undefined
+└─ correct? PASS
+
+┌─[13] 13_mtf_conflict  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars_m15=80 TFs=['M15', 'M5', 'M1']
+│ LATENCY     : total=0.15ms  cold=0.463ms  warm=0.167ms
+│ STAGES      : data_load=0.001 struct=0.006 feature=0.005 sr=0.005
+│              candle=0.009 break=0.004 rr=0.007
+│ BOTTLENECK  : multi_timeframe
+│ INTELLIGENCE: chart=0.162 entry=0.2 mtf=0.0 dq=1.0 speed=1.0
+│ STRUCT/TREND: struct=unclear trend=bearish/1.00/smooth
+│ FAKE/LATE   : fake_break=False late=True liq_sweep=False
+│ DECISION    : grade=C  permission=block  expect=block
+│ REASON      : struct=unclear|trend=bearish/1.0/smooth|candle=none/midrange/n_a|break=pending|retest=failed|entry=late|rr=0.28|mtf=conflicting|vol=normal|atr=normal|hard_block:mtf_conflict
+└─ correct? PASS
+
+┌─[14] 14_sr_near_blocks_trade  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars_m15=80 TFs=['M15']
+│ LATENCY     : total=0.159ms  cold=0.348ms  warm=0.193ms
+│ STAGES      : data_load=0.001 struct=0.006 feature=0.005 sr=0.014
+│              candle=0.008 break=0.007 rr=0.007
+│ BOTTLENECK  : support_resistance
+│ INTELLIGENCE: chart=0.362 entry=0.8 mtf=0.7 dq=1.0 speed=1.0
+│ STRUCT/TREND: struct=unclear trend=bullish/1.00/smooth
+│ FAKE/LATE   : fake_break=False late=False liq_sweep=False
+│ DECISION    : grade=C  permission=block  expect=any
+│ REASON      : struct=unclear|trend=bullish/1.0/smooth|candle=none/midrange/n_a|break=weak|retest=none|entry=good|rr=0.03|mtf=n_a|vol=normal|atr=normal|hard_block:rr_too_low
+└─ correct? PASS
+
+┌─[15] 15_rapid_move_chase  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars_m15=80 TFs=['M15']
+│ LATENCY     : total=0.142ms  cold=0.358ms  warm=0.164ms
+│ STAGES      : data_load=0.001 struct=0.006 feature=0.006 sr=0.011
+│              candle=0.009 break=0.008 rr=0.007
+│ BOTTLENECK  : multi_timeframe
+│ INTELLIGENCE: chart=0.419 entry=0.0 mtf=0.7 dq=1.0 speed=1.0
+│ STRUCT/TREND: struct=bos_up trend=bullish/1.00/smooth
+│ FAKE/LATE   : fake_break=False late=True liq_sweep=False
+│ DECISION    : grade=C  permission=block  expect=block
+│ REASON      : struct=bos_up|trend=bullish/1.0/smooth|candle=momentum_bull/midrange/weak|break=real|retest=none|entry=chase|rr=0.11|mtf=n_a|vol=high|atr=normal|hard_block:chase_entry
+└─ correct? PASS
+
+====================================================================================================
+FINAL: 15/15 PASSED  (100%)
+LATENCY AVG : cold=0.385ms  warm=0.182ms  speedup=2.1x
+LATENCY MAX : cold=0.492ms  warm=0.233ms
+====================================================================================================

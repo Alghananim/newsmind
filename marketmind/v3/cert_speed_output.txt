@@ -1,0 +1,119 @@
+====================================================================================================
+MarketMind V4 — Speed + Intelligence Cert (10 سيناريو)
+====================================================================================================
+
+┌─[01] fast_clean_trend  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars=80 news=yes:allow
+│ LATENCY     : decision=0.45ms  data=0.0ms  cold=1.21ms  warm=0.48ms  bottleneck=correlation  ✓
+│ SOURCES     : used=['EUR/USD', 'USD/JPY', 'GBP/USD', 'XAU/USD', 'SPX500', 'NewsMind']  stale=none
+│ INTELLIGENCE: trend=1.0  vol=1.0  liq=1.0  dq=1.0  speed=1.0  mi=1.0  ✓
+│ CROSS-MARKET: confirmation=strong  contradictions=none  ✓
+│ DECISION    : grade=A+  permission=allow  expect=allow  ✓
+│ CACHE       : {'hits': 13, 'misses': 69, 'hit_rate': 0.159, 'size': 69}
+│ REASON      : regime_diag={'adx': 100.0, 'atr': 0.000263, 'atr_p95': 0.000266, 'whipsaws_10': 0, 'last_range_x_atr': 1.0}|dxy=down/0.4|risk=risk_on/0.85|corr=normal/{'EURUSD_vs_USDJPY': 0.265, 'EURUSD_vs_GOLD': 0.0
+└─ correct? PASS
+
+┌─[02] stale_source_news  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars=80 news=yes:wait
+│ LATENCY     : decision=0.21ms  data=800ms  cold=0.83ms  warm=0.23ms  bottleneck=correlation  ✓
+│ SOURCES     : used=['EUR/USD', 'USD/JPY', 'NewsMind']  stale=['NewsMind']
+│ INTELLIGENCE: trend=1.0  vol=1.0  liq=1.0  dq=1.0  speed=1.0  mi=0.85  ✓
+│ CROSS-MARKET: confirmation=weak  contradictions=none  ✓
+│ DECISION    : grade=B  permission=wait  expect=wait  ✓
+│ CACHE       : {'hits': 13, 'misses': 69, 'hit_rate': 0.159, 'size': 69}
+│ REASON      : regime_diag={'adx': 100.0, 'atr': 0.000248, 'atr_p95': 0.000286, 'whipsaws_10': 2, 'last_range_x_atr': 0.87}|dxy=down/0.415|risk=unclear/0.0|corr=broken/{'EURUSD_vs_USDJPY': 0.989}|contr={'count': 0, 
+└─ correct? PASS
+
+┌─[03] spread_widening_fast  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars=80 news=none
+│ LATENCY     : decision=0.21ms  data=0.0ms  cold=0.84ms  warm=0.23ms  bottleneck=correlation  ✓
+│ SOURCES     : used=['EUR/USD', 'USD/JPY']  stale=none
+│ INTELLIGENCE: trend=0.1  vol=0.5  liq=1.0  dq=0.7  speed=1.0  mi=0.46  ✓
+│ CROSS-MARKET: confirmation=moderate  contradictions=none  ✓
+│ DECISION    : grade=C  permission=block  expect=block  ✓
+│ CACHE       : {'hits': 13, 'misses': 69, 'hit_rate': 0.159, 'size': 69}
+│ REASON      : regime_diag={'adx': 100.0, 'atr': 0.000518, 'atr_p95': 0.000289, 'whipsaws_10': 2, 'last_range_x_atr': 7.72}|dxy=down/0.373|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': 0.409}|contr={'count': 0, 
+└─ correct? PASS
+
+┌─[04] dxy_contradicts_eurusd  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars=80 news=none
+│ LATENCY     : decision=0.19ms  data=0.0ms  cold=0.81ms  warm=0.21ms  bottleneck=correlation  ✓
+│ SOURCES     : used=['EUR/USD', 'USD/JPY', 'GBP/USD']  stale=none
+│ INTELLIGENCE: trend=1.0  vol=1.0  liq=1.0  dq=1.0  speed=1.0  mi=0.85  ✓
+│ CROSS-MARKET: confirmation=moderate  contradictions=['eurusd_and_usdjpy_both_up_inconsistent_usd']  ✓
+│ DECISION    : grade=C  permission=wait  expect=wait  ✓
+│ CACHE       : {'hits': 13, 'misses': 69, 'hit_rate': 0.159, 'size': 69}
+│ REASON      : regime_diag={'adx': 100.0, 'atr': 0.000395, 'atr_p95': 0.000397, 'whipsaws_10': 0, 'last_range_x_atr': 1.0}|dxy=down/0.392|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': -0.053}|contr={'count': 1, 
+└─ correct? PASS
+
+┌─[05] yields_vs_usdjpy_divergent  ✓ PASS
+│ INPUT       : pair=USD/JPY  bars=80 news=none
+│ LATENCY     : decision=0.26ms  data=0.0ms  cold=0.87ms  warm=0.27ms  bottleneck=correlation  ✓
+│ SOURCES     : used=['EUR/USD', 'USD/JPY', 'GBP/USD', 'XAU/USD']  stale=none
+│ INTELLIGENCE: trend=0.025  vol=1.0  liq=1.0  dq=1.0  speed=1.0  mi=0.805  ✓
+│ CROSS-MARKET: confirmation=weak  contradictions=none  ✓
+│ DECISION    : grade=B  permission=wait  expect=wait  ✓
+│ CACHE       : {'hits': 13, 'misses': 71, 'hit_rate': 0.155, 'size': 71}
+│ REASON      : regime_diag={'adx': 11.5, 'atr': 0.001904, 'atr_p95': 0.002361, 'whipsaws_10': 5, 'last_range_x_atr': 0.86}|dxy=up/0.573|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': 0.028, 'EURUSD_vs_GOLD': 0.31
+└─ correct? PASS
+
+┌─[06] riskoff_jpy_haven_violated  ✓ PASS
+│ INPUT       : pair=USD/JPY  bars=80 news=yes:wait
+│ LATENCY     : decision=0.32ms  data=0.0ms  cold=0.96ms  warm=0.34ms  bottleneck=correlation  ✓
+│ SOURCES     : used=['EUR/USD', 'USD/JPY', 'GBP/USD', 'XAU/USD', 'SPX500', 'NewsMind']  stale=none
+│ INTELLIGENCE: trend=1.0  vol=1.0  liq=1.0  dq=1.0  speed=1.0  mi=0.55  ✓
+│ CROSS-MARKET: confirmation=strong  contradictions=['risk_off_but_usdjpy_rising_haven_violated', 'gold_up_and_dollar_up_abnormal_regime', 'spx_down_but_usdjpy_up_risk_off_violated']  ✓
+│ DECISION    : grade=C  permission=wait  expect=wait  ✓
+│ CACHE       : {'hits': 13, 'misses': 71, 'hit_rate': 0.155, 'size': 71}
+│ REASON      : regime_diag={'adx': 100.0, 'atr': 0.054436, 'atr_p95': 0.05601, 'whipsaws_10': 0, 'last_range_x_atr': 0.8}|dxy=up/0.565|risk=risk_off/0.85|corr=normal/{'EURUSD_vs_USDJPY': -0.216, 'EURUSD_vs_GOLD': -0
+└─ correct? PASS
+
+┌─[07] fake_breakout_no_followthrough  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars=80 news=none
+│ LATENCY     : decision=0.2ms  data=0.0ms  cold=0.81ms  warm=0.22ms  bottleneck=correlation  ✓
+│ SOURCES     : used=['EUR/USD', 'USD/JPY']  stale=none
+│ INTELLIGENCE: trend=1.0  vol=0.5  liq=1.0  dq=1.0  speed=1.0  mi=0.9  ✓
+│ CROSS-MARKET: confirmation=weak  contradictions=none  ✓
+│ DECISION    : grade=B  permission=wait  expect=wait  ✓
+│ CACHE       : {'hits': 13, 'misses': 69, 'hit_rate': 0.159, 'size': 69}
+│ REASON      : regime_diag={'adx': 39.0, 'atr': 0.002144, 'atr_p95': 0.000985, 'whipsaws_10': 3, 'last_range_x_atr': 2.33}|dxy=flat/0.483|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': 0.287}|contr={'count': 0, '
+└─ correct? PASS
+
+┌─[08] choppy_dangerous_fast  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars=80 news=none
+│ LATENCY     : decision=0.19ms  data=0.0ms  cold=0.78ms  warm=0.20ms  bottleneck=correlation  ✓
+│ SOURCES     : used=['EUR/USD', 'USD/JPY']  stale=none
+│ INTELLIGENCE: trend=0.025  vol=1.0  liq=1.0  dq=1.0  speed=1.0  mi=0.805  ✓
+│ CROSS-MARKET: confirmation=weak  contradictions=none  ✓
+│ DECISION    : grade=B  permission=wait  expect=wait  ✓
+│ CACHE       : {'hits': 13, 'misses': 69, 'hit_rate': 0.159, 'size': 69}
+│ REASON      : regime_diag={'adx': 0.0, 'atr': 0.0002, 'atr_p95': 0.0002, 'whipsaws_10': 9, 'last_range_x_atr': 1.0}|dxy=flat/0.495|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': 0.087}|contr={'count': 0, 'critic
+└─ correct? PASS
+
+┌─[09] news_block_inherited  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars=80 news=yes:block
+│ LATENCY     : decision=0.2ms  data=0.0ms  cold=0.95ms  warm=0.22ms  bottleneck=correlation  ✓
+│ SOURCES     : used=['EUR/USD', 'USD/JPY', 'NewsMind']  stale=none
+│ INTELLIGENCE: trend=1.0  vol=1.0  liq=1.0  dq=1.0  speed=1.0  mi=0.85  ✓
+│ CROSS-MARKET: confirmation=weak  contradictions=none  ✓
+│ DECISION    : grade=C  permission=block  expect=block  ✓
+│ CACHE       : {'hits': 13, 'misses': 69, 'hit_rate': 0.159, 'size': 69}
+│ REASON      : regime_diag={'adx': 100.0, 'atr': 0.000248, 'atr_p95': 0.000286, 'whipsaws_10': 2, 'last_range_x_atr': 0.87}|dxy=down/0.415|risk=unclear/0.0|corr=broken/{'EURUSD_vs_USDJPY': 0.989}|contr={'count': 0, 
+└─ correct? PASS
+
+┌─[10] rapid_move_chase_risk  ✓ PASS
+│ INPUT       : pair=EUR/USD  bars=80 news=yes:allow
+│ LATENCY     : decision=0.21ms  data=0.0ms  cold=0.83ms  warm=0.23ms  bottleneck=correlation  ✓
+│ SOURCES     : used=['EUR/USD', 'USD/JPY', 'NewsMind']  stale=none
+│ INTELLIGENCE: trend=1.0  vol=1.0  liq=1.0  dq=1.0  speed=1.0  mi=0.7  ✓
+│ CROSS-MARKET: confirmation=moderate  contradictions=['news_bearish_but_market_bullish_divergent', 'rapid_move_check_chase_risk']  ✓
+│ DECISION    : grade=B  permission=wait  expect=wait  ✓
+│ CACHE       : {'hits': 13, 'misses': 69, 'hit_rate': 0.159, 'size': 69}
+│ REASON      : regime_diag={'adx': 99.5, 'atr': 0.00026, 'atr_p95': 0.000184, 'whipsaws_10': 0, 'last_range_x_atr': 1.39}|dxy=down/0.379|risk=unclear/0.0|corr=normal/{'EURUSD_vs_USDJPY': -0.078}|contr={'count': 2, '
+└─ correct? PASS
+
+====================================================================================================
+FINAL: 10/10 PASSED  (100%)
+LATENCY AVG: cold=0.89ms  warm=0.26ms  speedup=3.4x
+LATENCY MAX: cold=1.21ms  warm=0.48ms
+====================================================================================================

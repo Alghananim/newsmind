@@ -1,0 +1,188 @@
+====================================================================================================
+GateMind V4 — Speed + Intelligence Cert (15 سيناريو)
+====================================================================================================
+
+┌─[01] 01_all_top_clean_fast_enter  ✓ PASS
+│ DECISION    : enter/buy  approved=True  expect=enter  ✓
+│ LATENCY     : total=0.3033ms  raw=0.3263ms  bottleneck=session_check  ✓
+│ STAGES      : input=0.054 align=0.0064 risk=0.0096 session=0.1628
+│              exec=0.0054 limits=0.0031 final=0.0162
+│ INTELLIGENCE: gate=1.0 speed=1.0  align=1.0 risk=1.0 exec=1.0
+│ CONTRADICT  : none  ✓
+│ BLOCKING    : none
+│ WARNINGS    : none
+│ REASON      : ENTER: aligned/buy all_grades_top conf=0.9 rr=2.0
+└─ correct? PASS
+
+┌─[02] 02_grade_high_but_reason_warning  ✓ PASS
+│ DECISION    : wait/none  approved=False  expect=wait  ✓
+│ LATENCY     : total=0.0758ms  raw=0.0918ms  bottleneck=input_parse  ✓
+│ STAGES      : input=0.0157 align=0.0043 risk=0.0034 session=0.0118
+│              exec=0.0029 limits=0.0014 final=0.0108
+│ INTELLIGENCE: gate=0.93 speed=1.0  align=1.0 risk=1.0 exec=1.0
+│ CONTRADICT  : ['news_high_grade_with_warning_keyword']  ✓
+│ BLOCKING    : none
+│ WARNINGS    : ['contradiction_wait:news_high_grade_with_warning_keyword']
+│ REASON      : WAIT: contradiction_wait: news_high_grade_with_warning_keyword
+└─ correct? PASS
+
+┌─[03] 03_high_conf_data_stale  ✓ PASS
+│ DECISION    : block/none  approved=False  expect=block  ✓
+│ LATENCY     : total=0.0637ms  raw=0.0778ms  bottleneck=input_parse  ✓
+│ STAGES      : input=0.0121 align=0.0036 risk=0.0032 session=0.009
+│              exec=0.0024 limits=0.0025 final=0.0075
+│ INTELLIGENCE: gate=0.73 speed=1.0  align=1.0 risk=1.0 exec=1.0
+│ CONTRADICT  : ['news_high_conf_but_data_stale']  ✓
+│ BLOCKING    : ['state_data_stale:latency=2500.0ms>1000.0ms']
+│ WARNINGS    : none
+│ REASON      : BLOCK: state_data_stale:latency=2500.0ms>1000.0ms
+└─ correct? PASS
+
+┌─[04] 04_spread_near_max  ✓ PASS
+│ DECISION    : wait/none  approved=False  expect=wait  ✓
+│ LATENCY     : total=0.0604ms  raw=0.0735ms  bottleneck=input_parse  ✓
+│ STAGES      : input=0.0105 align=0.0032 risk=0.0027 session=0.0082
+│              exec=0.0023 limits=0.0013 final=0.01
+│ INTELLIGENCE: gate=0.93 speed=1.0  align=1.0 risk=1.0 exec=1.0
+│ CONTRADICT  : ['spread_near_max:1.60>1.40']  ✓
+│ BLOCKING    : none
+│ WARNINGS    : ['contradiction_medium:spread_near_max:1.60>1.40']
+│ REASON      : WAIT: medium_contradiction: spread_near_max:1.60>1.40
+└─ correct? PASS
+
+┌─[05] 05_in_window_near_end  ✓ PASS
+│ DECISION    : wait/none  approved=False  expect=wait  ✓
+│ LATENCY     : total=0.0578ms  raw=0.0708ms  bottleneck=input_parse  ✓
+│ STAGES      : input=0.0101 align=0.0031 risk=0.0028 session=0.0079
+│              exec=0.0021 limits=0.0012 final=0.0095
+│ INTELLIGENCE: gate=0.93 speed=1.0  align=1.0 risk=1.0 exec=1.0
+│ CONTRADICT  : ['in_window_but_near_end_retry_risk']  ✓
+│ BLOCKING    : none
+│ WARNINGS    : ['contradiction_medium:in_window_but_near_end_retry_risk']
+│ REASON      : WAIT: medium_contradiction: in_window_but_near_end_retry_risk
+└─ correct? PASS
+
+┌─[06] 06_chart_allow_but_reason_fake  ✓ PASS
+│ DECISION    : wait/none  approved=False  expect=wait  ✓
+│ LATENCY     : total=0.0562ms  raw=0.0687ms  bottleneck=input_parse  ✓
+│ STAGES      : input=0.0094 align=0.0028 risk=0.0024 session=0.0076
+│              exec=0.0021 limits=0.0013 final=0.0092
+│ INTELLIGENCE: gate=0.773 speed=1.0  align=1.0 risk=1.0 exec=1.0
+│ CONTRADICT  : ['chart_high_grade_with_warning_keyword', 'chart_allow_but_reason_has_fake_breakout']  ✓
+│ BLOCKING    : none
+│ WARNINGS    : ['contradiction_wait:chart_high_grade_with_warning_keyword,chart_allow_but_reason_has_fake_breakout']
+│ REASON      : WAIT: contradiction_wait: chart_high_grade_with_warning_keyword,chart_allow_but_reason_has_fake_breakout
+└─ correct? PASS
+
+┌─[07] 07_monitoring_with_live_critical  ✓ PASS
+│ DECISION    : block/none  approved=False  expect=block  ✓
+│ LATENCY     : total=0.0511ms  raw=0.0637ms  bottleneck=input_parse  ✓
+│ STAGES      : input=0.0097 align=0.0029 risk=0.0026 session=0.0074
+│              exec=0.0017 limits=0.0012 final=0.0056
+│ INTELLIGENCE: gate=0.73 speed=1.0  align=1.0 risk=1.0 exec=0.0
+│ CONTRADICT  : ['pair_monitoring_with_live_enabled']  ✓
+│ BLOCKING    : ['execution_monitoring_pair_live_blocked:pair_monitoring_cannot_go_live']
+│ WARNINGS    : none
+│ REASON      : BLOCK: execution_monitoring_pair_live_blocked:pair_monitoring_cannot_go_live
+└─ correct? PASS
+
+┌─[08] 08_direction_inconsistency_critical  ✓ PASS
+│ DECISION    : block/none  approved=False  expect=block  ✓
+│ LATENCY     : total=0.0521ms  raw=0.0644ms  bottleneck=input_parse  ✓
+│ STAGES      : input=0.0092 align=0.0039 risk=0.0025 session=0.0074
+│              exec=0.002 limits=0.0012 final=0.0057
+│ INTELLIGENCE: gate=0.71 speed=1.0  align=0.0 risk=1.0 exec=1.0
+│ CONTRADICT  : ["direction_inconsistency:['bullish', 'bearish', 'bullish']"]  ✓
+│ BLOCKING    : ["alignment_conflicting:directions=['bullish', 'bearish', 'bullish']"]
+│ WARNINGS    : none
+│ REASON      : BLOCK: alignment_conflicting:directions=['bullish', 'bearish', 'bullish']
+└─ correct? PASS
+
+┌─[09] 09_recent_loss_no_cooldown  ✓ PASS
+│ DECISION    : wait/none  approved=False  expect=wait  ✓
+│ LATENCY     : total=0.1375ms  raw=0.1531ms  bottleneck=input_parse  ✓
+│ STAGES      : input=0.0686 align=0.0049 risk=0.0051 session=0.0128
+│              exec=0.0029 limits=0.0016 final=0.0126
+│ INTELLIGENCE: gate=0.93 speed=1.0  align=1.0 risk=1.0 exec=1.0
+│ CONTRADICT  : ['recent_loss_no_cooldown_set_retry_risk']  ✓
+│ BLOCKING    : none
+│ WARNINGS    : ['contradiction_medium:recent_loss_no_cooldown_set_retry_risk']
+│ REASON      : WAIT: medium_contradiction: recent_loss_no_cooldown_set_retry_risk
+└─ correct? PASS
+
+┌─[10] 10_rr_weak_edge  ✓ PASS
+│ DECISION    : wait/none  approved=False  expect=wait  ✓
+│ LATENCY     : total=0.071ms  raw=0.0861ms  bottleneck=input_parse  ✓
+│ STAGES      : input=0.017 align=0.0039 risk=0.0032 session=0.0094
+│              exec=0.0026 limits=0.0016 final=0.0085
+│ INTELLIGENCE: gate=0.85 speed=1.0  align=1.0 risk=0.6 exec=1.0
+│ CONTRADICT  : ['rr_weak_edge:1.05']  ✓
+│ BLOCKING    : none
+│ WARNINGS    : ['rr_marginal']
+│ REASON      : WAIT: rr_marginal
+└─ correct? PASS
+
+┌─[11] 11_all_great_enter  ✓ PASS
+│ DECISION    : enter/buy  approved=True  expect=enter  ✓
+│ LATENCY     : total=0.0637ms  raw=0.0781ms  bottleneck=input_parse  ✓
+│ STAGES      : input=0.0102 align=0.0035 risk=0.0029 session=0.0079
+│              exec=0.0024 limits=0.0014 final=0.0083
+│ INTELLIGENCE: gate=1.0 speed=1.0  align=1.0 risk=1.0 exec=1.0
+│ CONTRADICT  : none  ✓
+│ BLOCKING    : none
+│ WARNINGS    : none
+│ REASON      : ENTER: aligned/buy all_grades_top conf=0.9 rr=2.0
+└─ correct? PASS
+
+┌─[12] 12_outside_window_fast_block  ✓ PASS
+│ DECISION    : block/none  approved=False  expect=block  ✓
+│ LATENCY     : total=0.0568ms  raw=0.0702ms  bottleneck=input_parse  ✓
+│ STAGES      : input=0.0098 align=0.0032 risk=0.0027 session=0.0093
+│              exec=0.0023 limits=0.0013 final=0.0064
+│ INTELLIGENCE: gate=0.88 speed=1.0  align=1.0 risk=1.0 exec=1.0
+│ CONTRADICT  : none  ✓
+│ BLOCKING    : ['session_outside:ny_time=02:00 not_in_[(3, 5), (8, 12)]']
+│ WARNINGS    : none
+│ REASON      : BLOCK: session_outside:ny_time=02:00 not_in_[(3, 5), (8, 12)]
+└─ correct? PASS
+
+┌─[13] 13_news_block_fast  ✓ PASS
+│ DECISION    : block/none  approved=False  expect=block  ✓
+│ LATENCY     : total=0.0534ms  raw=0.0666ms  bottleneck=input_parse  ✓
+│ STAGES      : input=0.0098 align=0.0025 risk=0.0024 session=0.0077
+│              exec=0.0021 limits=0.0013 final=0.0067
+│ INTELLIGENCE: gate=0.82 speed=1.0  align=0.0 risk=1.0 exec=1.0
+│ CONTRADICT  : none  ✓
+│ BLOCKING    : ['news_block:NFP_window', 'news_grade_C']
+│ WARNINGS    : none
+│ REASON      : BLOCK: news_block:NFP_window | news_grade_C | alignment_blocked:blocked_by=['news']
+└─ correct? PASS
+
+┌─[14] 14_pair_disabled_fast_block  ✓ PASS
+│ DECISION    : block/none  approved=False  expect=block  ✓
+│ LATENCY     : total=0.0711ms  raw=0.0869ms  bottleneck=input_parse  ✓
+│ STAGES      : input=0.0137 align=0.0041 risk=0.0047 session=0.0117
+│              exec=0.0022 limits=0.0015 final=0.0068
+│ INTELLIGENCE: gate=0.88 speed=1.0  align=1.0 risk=1.0 exec=0.0
+│ CONTRADICT  : none  ✓
+│ BLOCKING    : ['execution_disabled_pair:pair_GBP/USD_disabled']
+│ WARNINGS    : none
+│ REASON      : BLOCK: execution_disabled_pair:pair_GBP/USD_disabled
+└─ correct? PASS
+
+┌─[15] 15_daily_loss_limit_block  ✓ PASS
+│ DECISION    : block/none  approved=False  expect=block  ✓
+│ LATENCY     : total=0.0554ms  raw=0.0689ms  bottleneck=input_parse  ✓
+│ STAGES      : input=0.0102 align=0.0033 risk=0.0028 session=0.0078
+│              exec=0.0024 limits=0.0016 final=0.0062
+│ INTELLIGENCE: gate=0.88 speed=1.0  align=1.0 risk=1.0 exec=1.0
+│ CONTRADICT  : none  ✓
+│ BLOCKING    : ['state_blocked_by_loss_limit:daily_loss=5.00%>=5.00%', 'daily_loss_limit_hit']
+│ WARNINGS    : none
+│ REASON      : BLOCK: state_blocked_by_loss_limit:daily_loss=5.00%>=5.00% | daily_loss_limit_hit
+└─ correct? PASS
+
+====================================================================================================
+FINAL: 15/15 PASSED
+LATENCY: avg=0.0965ms  max=0.3263ms  budget=5.0ms  margin=52x
+====================================================================================================

@@ -1,0 +1,270 @@
+================================================================================
+NewsMind v2 — اختبار الذكاء (23 سيناريو واقعي)
+================================================================================
+
+#   Scenario                 Saf Frs Vrf Imp Rsk Diff   IQ
+--------------------------------------------------------------------------------
+1   CPI_hot                    ✓   ✓   ✓   ✓   ✓    ✓ PASS
+2   CPI_cold                   ✓   ✓   ✓   ✓   ✓    ✓ PASS
+3   NFP_strong                 ✓   ✓   ✓   ✓   ✓    ✓ PASS
+4   NFP_weak                   ✓   ✓   ✓   ✓   ✓    ✓ PASS
+5   Fed_as_expected            ✓   ✓   ✓   ✓   ✓    ✓ PASS
+6   Fed_surprise_cut           ✓   ✓   ✓   ✓   ✓    ✓ PASS
+7   Fed_hawkish                ✓   ✓   ✓   ✓   ✓    ✓ PASS
+8   Fed_dovish                 ✓   ✓   ✓   ✓   ✓    ✓ PASS
+9   Recycled                   ✓   ✓   ✓   ✓   ✓    ✓ PASS
+10  Breaking_unconfirmed       ✓   ✓   ✓   ✓   ✓    ✓ PASS
+11  Twitter_rumor              ✓   ✓   ✓   ✓   ✓    ✓ PASS
+12  Trump_truth_social         ✓   ✓   ✓   ✓   ✓    ✓ PASS
+13  Political_unverified       ✓   ✓   ✓   ✓   ✓    ✓ PASS
+14  War_sanctions              ✓   ✓   ✓   ✓   ✓    ✓ PASS
+15  Conflicting                ✓   ✓   ✓   ✓   ✓    ✓ PASS
+16  Already_moved              ✓   ✓   ✓   ✓   ✓    ✓ PASS
+17  No_timestamp               ✓   ✓   ✓   ✓   ✓    ✓ PASS
+18  Truncated                  ✓   ✓   ✓   ✓   ✓    ✓ PASS
+19  Source_failure             ✓   ✓   ✓   ✓   ✓    ✓ PASS
+20  Pre_FOMC                   ✓   ✓   ✓   ✓   ✓    ✓ PASS
+21  Post_BoJ                   ✗   ✓   ✓   ✓   ✓    ✓ fail
+22  Unrelated                  ✓   ✓   ✗   ✓   ✓    ✓ fail
+23  RiskOff_yen                ✓   ✓   ✓   ✓   ✓    ✓ PASS
+--------------------------------------------------------------------------------
+SAFETY        : 22/23  (95%)
+FRESHNESS     : 23/23  (100%)
+VERIFICATION  : 22/23  (95%)
+IMPACT_DIR    : 23/23  (100%)
+RISK_MODE     : 23/23  (100%)
+PAIR_DIFF     : 23/23  (100%)
+INTELLIGENT   : 21/23  (91%)
+================================================================================
+
+--- DETAIL ---
+
+[1] CPI_hot
+  headline: US CPI prints 4.2% vs 3.8% expected — hot inflation
+  source: reuters_wire (tier1_wire) trusted=True
+  expected: fresh=fresh verif=confirmed impact=high
+  expected_dir: USD=up  EUR/USD=down  USD/JPY=up  risk=risk_off
+  expected_perm: allow  expected_grade≤A
+  GOT: permission=allow  fresh=fresh  grade=B  confirm=3  bias=bearish  risk=unclear  impact=high
+  reason: fresh_verified|iq:event:US_CPI,surprise:+0.11,hot
+  safety:✓ fresh:✓ verif:✓ impact:✓ risk:✓ diff:✓
+
+[2] CPI_cold
+  headline: US CPI prints 2.1% vs 3.0% expected — soft inflation
+  source: reuters_wire (tier1_wire) trusted=True
+  expected: fresh=fresh verif=confirmed impact=high
+  expected_dir: USD=down  EUR/USD=up  USD/JPY=down  risk=risk_on
+  expected_perm: allow  expected_grade≤A
+  GOT: permission=allow  fresh=fresh  grade=B  confirm=2  bias=bullish  risk=unclear  impact=high
+  reason: fresh_verified|iq:event:US_CPI,surprise:-0.30,cold
+  safety:✓ fresh:✓ verif:✓ impact:✓ risk:✓ diff:✓
+
+[3] NFP_strong
+  headline: US NFP +320k vs +180k expected — labor market hot
+  source: reuters_wire (tier1_wire) trusted=True
+  expected: fresh=fresh verif=confirmed impact=high
+  expected_dir: USD=up  EUR/USD=down  USD/JPY=up  risk=unclear
+  expected_perm: allow  expected_grade≤A
+  GOT: permission=allow  fresh=fresh  grade=B  confirm=2  bias=bearish  risk=unclear  impact=high
+  reason: fresh_verified|iq:event:US_NFP,surprise:+0.78,hot
+  safety:✓ fresh:✓ verif:✓ impact:✓ risk:✓ diff:✓
+
+[4] NFP_weak
+  headline: US NFP +50k vs +180k expected — labor market cooling
+  source: reuters_wire (tier1_wire) trusted=True
+  expected: fresh=fresh verif=confirmed impact=high
+  expected_dir: USD=down  EUR/USD=up  USD/JPY=down  risk=risk_on
+  expected_perm: allow  expected_grade≤A
+  GOT: permission=allow  fresh=fresh  grade=B  confirm=2  bias=bullish  risk=unclear  impact=high
+  reason: fresh_verified|iq:event:US_NFP,surprise:-0.72,cold
+  safety:✓ fresh:✓ verif:✓ impact:✓ risk:✓ diff:✓
+
+[5] Fed_as_expected
+  headline: Fed holds rates at 4.50%, in line with consensus
+  source: reuters_wire (tier1_wire) trusted=True
+  expected: fresh=fresh verif=confirmed impact=high
+  expected_dir: USD=neutral  EUR/USD=neutral  USD/JPY=neutral  risk=unclear
+  expected_perm: allow  expected_grade≤B
+  GOT: permission=allow  fresh=fresh  grade=B  confirm=2  bias=unclear  risk=unclear  impact=unknown
+  reason: fresh_verified
+  safety:✓ fresh:✓ verif:✓ impact:✓ risk:✓ diff:✓
+
+[6] Fed_surprise_cut
+  headline: Fed surprises with 50bp cut — markets did not expect
+  source: reuters_wire (tier1_wire) trusted=True
+  expected: fresh=fresh verif=confirmed impact=high
+  expected_dir: USD=down  EUR/USD=up  USD/JPY=down  risk=risk_on
+  expected_perm: allow  expected_grade≤A
+  GOT: permission=allow  fresh=fresh  grade=B  confirm=2  bias=bullish  risk=unclear  impact=unknown
+  reason: fresh_verified|iq:dovish
+  safety:✓ fresh:✓ verif:✓ impact:✓ risk:✓ diff:✓
+
+[7] Fed_hawkish
+  headline: Powell signals further hikes needed — hawkish
+  source: reuters_wire (tier1_wire) trusted=True
+  expected: fresh=fresh verif=confirmed impact=medium
+  expected_dir: USD=up  EUR/USD=down  USD/JPY=up  risk=unclear
+  expected_perm: allow  expected_grade≤B
+  GOT: permission=allow  fresh=fresh  grade=B  confirm=2  bias=bearish  risk=unclear  impact=medium
+  reason: fresh_verified|iq:event:FED_SPEAKER,hawkish
+  safety:✓ fresh:✓ verif:✓ impact:✓ risk:✓ diff:✓
+
+[8] Fed_dovish
+  headline: Powell hints rate cuts coming — dovish
+  source: reuters_wire (tier1_wire) trusted=True
+  expected: fresh=fresh verif=confirmed impact=medium
+  expected_dir: USD=down  EUR/USD=up  USD/JPY=down  risk=risk_on
+  expected_perm: allow  expected_grade≤B
+  GOT: permission=allow  fresh=fresh  grade=B  confirm=2  bias=bullish  risk=unclear  impact=medium
+  reason: fresh_verified|iq:event:FED_SPEAKER,dovish
+  safety:✓ fresh:✓ verif:✓ impact:✓ risk:✓ diff:✓
+
+[9] Recycled
+  headline: ECB hiked rates 25bp (republished from yesterday)
+  source: reuters_wire (tier1_wire) trusted=True
+  expected: fresh=recycled verif=confirmed impact=low
+  expected_dir: USD=neutral  EUR/USD=neutral  USD/JPY=neutral  risk=unclear
+  expected_perm: block  expected_grade≤C
+  GOT: permission=block  fresh=recycled  grade=C  confirm=2  bias=bullish  risk=unclear  impact=high
+  reason: news_age:recycled|iq:event:ECB_DECISION,hawkish
+  safety:✓ fresh:✓ verif:✓ impact:✓ risk:✓ diff:✓
+
+[10] Breaking_unconfirmed
+  headline: BREAKING: Fed officials discussing emergency cut
+  source: forexlive (financial_media) trusted=True
+  expected: fresh=fresh verif=unconfirmed impact=high
+  expected_dir: USD=unclear  EUR/USD=unclear  USD/JPY=unclear  risk=unclear
+  expected_perm: wait  expected_grade≤C
+  GOT: permission=wait  fresh=fresh  grade=C  confirm=1  bias=bullish  risk=unclear  impact=medium
+  reason: unverified_financial_media_n1|iq:event:FED_SPEAKER,dovish
+  safety:✓ fresh:✓ verif:✓ impact:✓ risk:✓ diff:✓
+
+[11] Twitter_rumor
+  headline: [X] Anonymous: Fed will cut tomorrow
+  source: twitter_official (social) trusted=False
+  expected: fresh=fresh verif=rumor impact=medium
+  expected_dir: USD=unclear  EUR/USD=unclear  USD/JPY=unclear  risk=unclear
+  expected_perm: wait  expected_grade≤C
+  GOT: permission=wait  fresh=fresh  grade=C  confirm=1  bias=bullish  risk=unclear  impact=unknown
+  reason: social_unconfirmed|iq:political_or_social_unverified,dovish
+  safety:✓ fresh:✓ verif:✓ impact:✓ risk:✓ diff:✓
+
+[12] Trump_truth_social
+  headline: Trump (Truth Social): Fed must cut now or face consequences
+  source: truth_social (social) trusted=False
+  expected: fresh=fresh verif=unconfirmed impact=medium
+  expected_dir: USD=unclear  EUR/USD=unclear  USD/JPY=unclear  risk=unclear
+  expected_perm: wait  expected_grade≤C
+  GOT: permission=wait  fresh=fresh  grade=C  confirm=1  bias=bullish  risk=unclear  impact=unknown
+  reason: social_unconfirmed|iq:political_or_social_unverified,dovish
+  safety:✓ fresh:✓ verif:✓ impact:✓ risk:✓ diff:✓
+
+[13] Political_unverified
+  headline: [Reuters via X] Treasury Secretary mulling intervention
+  source: twitter_official (social) trusted=False
+  expected: fresh=fresh verif=unconfirmed impact=high
+  expected_dir: USD=unclear  EUR/USD=unclear  USD/JPY=unclear  risk=unclear
+  expected_perm: wait  expected_grade≤C
+  GOT: permission=wait  fresh=fresh  grade=C  confirm=1  bias=unclear  risk=unclear  impact=unknown
+  reason: social_unconfirmed|iq:political_or_social_unverified,intervention
+  safety:✓ fresh:✓ verif:✓ impact:✓ risk:✓ diff:✓
+
+[14] War_sanctions
+  headline: BREAKING: Major escalation in Middle East — sanctions imposed
+  source: reuters_wire (tier1_wire) trusted=True
+  expected: fresh=fresh verif=confirmed impact=high
+  expected_dir: USD=up  EUR/USD=down  USD/JPY=down  risk=risk_off
+  expected_perm: wait  expected_grade≤A
+  GOT: permission=wait  fresh=fresh  grade=B  confirm=2  bias=bearish  risk=risk_off  impact=high
+  reason: fresh_verified|iq:risk_off_cue,risk_mode:off,risk_off_implies_high_impact,usd_safe_haven_default|risk_off_caution
+  safety:✓ fresh:✓ verif:✓ impact:✓ risk:✓ diff:✓
+
+[15] Conflicting
+  headline: Fed CONFLICT: Reuters says cut, Bloomberg says hold
+  source: mixed (tier1_wire) trusted=True
+  expected: fresh=fresh verif=contradicted impact=high
+  expected_dir: USD=unclear  EUR/USD=unclear  USD/JPY=unclear  risk=unclear
+  expected_perm: wait  expected_grade≤C
+  GOT: permission=wait  fresh=fresh  grade=C  confirm=1  bias=bullish  risk=unclear  impact=unknown
+  reason: unverified_tier1_wire_n1|iq:dovish
+  safety:✓ fresh:✓ verif:✓ impact:✓ risk:✓ diff:✓
+
+[16] Already_moved
+  headline: ECB unexpectedly hawkish (market already +35pip)
+  source: reuters_wire (tier1_wire) trusted=True
+  expected: fresh=fresh verif=confirmed impact=high
+  expected_dir: USD=neutral  EUR/USD=up  USD/JPY=down  risk=unclear
+  expected_perm: block  expected_grade≤C
+  GOT: permission=block  fresh=fresh  grade=C  confirm=2  bias=bullish  risk=unclear  impact=high
+  reason: chasing_market:chasing_4_signals|iq:event:ECB_DECISION,hawkish
+  safety:✓ fresh:✓ verif:✓ impact:✓ risk:✓ diff:✓
+
+[17] No_timestamp
+  headline: Some macro headline (no timestamp)
+  source: reuters_wire (tier1_wire) trusted=True
+  expected: fresh=unknown verif=n_a impact=medium
+  expected_dir: USD=unclear  EUR/USD=unclear  USD/JPY=unclear  risk=unclear
+  expected_perm: wait  expected_grade≤C
+  GOT: permission=wait  fresh=unknown  grade=C  confirm=2  bias=unclear  risk=unclear  impact=unknown
+  reason: missing_timestamp
+  safety:✓ fresh:✓ verif:✓ impact:✓ risk:✓ diff:✓
+
+[18] Truncated
+  headline: Fed offici
+  source: forexlive (financial_media) trusted=True
+  expected: fresh=fresh verif=unconfirmed impact=low
+  expected_dir: USD=unclear  EUR/USD=unclear  USD/JPY=unclear  risk=unclear
+  expected_perm: wait  expected_grade≤C
+  GOT: permission=wait  fresh=fresh  grade=C  confirm=1  bias=unclear  risk=unclear  impact=unknown
+  reason: unverified_financial_media_n1
+  safety:✓ fresh:✓ verif:✓ impact:✓ risk:✓ diff:✓
+
+[19] Source_failure
+  headline: (no items — all sources broken)
+  source: n_a (n_a) trusted=False
+  expected: fresh=unknown verif=n_a impact=low
+  expected_dir: USD=unclear  EUR/USD=unclear  USD/JPY=unclear  risk=unclear
+  expected_perm: wait  expected_grade≤C
+  GOT: permission=wait  fresh=unknown  grade=C  confirm=0  bias=neutral  risk=unclear  impact=unknown
+  reason: sources_all_failed_or_silent:ok=0/err=1/never=0
+  safety:✓ fresh:✓ verif:✓ impact:✓ risk:✓ diff:✓
+
+[20] Pre_FOMC
+  headline: (no news, but FOMC in 5min)
+  source: calendar (calendar) trusted=True
+  expected: fresh=fresh verif=n_a impact=high
+  expected_dir: USD=unclear  EUR/USD=unclear  USD/JPY=unclear  risk=unclear
+  expected_perm: block  expected_grade≤C
+  GOT: permission=block  fresh=unknown  grade=C  confirm=0  bias=neutral  risk=unclear  impact=high
+  reason: scheduled_high_impact_FOMC Rate Decision_pre_window
+  safety:✓ fresh:✓ verif:✓ impact:✓ risk:✓ diff:✓
+
+[21] Post_BoJ
+  headline: (no news, BoJ was 30 min ago)
+  source: calendar (calendar) trusted=True
+  expected: fresh=fresh verif=n_a impact=low
+  expected_dir: USD=unclear  EUR/USD=unclear  USD/JPY=unclear  risk=unclear
+  expected_perm: wait  expected_grade≤C
+  GOT: permission=allow  fresh=unknown  grade=C  confirm=0  bias=neutral  risk=unclear  impact=unknown
+  reason: no_blocking_news
+  safety:✗ fresh:✓ verif:✓ impact:✓ risk:✓ diff:✓
+
+[22] Unrelated
+  headline: RBA holds — irrelevant for EUR/USD or USD/JPY
+  source: reuters_wire (tier1_wire) trusted=True
+  expected: fresh=fresh verif=confirmed impact=low
+  expected_dir: USD=neutral  EUR/USD=neutral  USD/JPY=neutral  risk=unclear
+  expected_perm: allow  expected_grade≤C
+  GOT: permission=allow  fresh=unknown  grade=C  confirm=0  bias=neutral  risk=unclear  impact=unknown
+  reason: no_blocking_news
+  safety:✓ fresh:✓ verif:✗ impact:✓ risk:✓ diff:✓
+
+[23] RiskOff_yen
+  headline: Global equity rout — flight to safety, yen rallies
+  source: reuters_wire (tier1_wire) trusted=True
+  expected: fresh=fresh verif=confirmed impact=high
+  expected_dir: USD=up  EUR/USD=down  USD/JPY=down  risk=risk_off
+  expected_perm: wait  expected_grade≤A
+  GOT: permission=wait  fresh=fresh  grade=B  confirm=2  bias=bearish  risk=risk_off  impact=high
+  reason: fresh_verified|iq:risk_off_cue,risk_mode:off,risk_off_implies_high_impact,usd_safe_haven_default|risk_off_caution
+  safety:✓ fresh:✓ verif:✓ impact:✓ risk:✓ diff:✓

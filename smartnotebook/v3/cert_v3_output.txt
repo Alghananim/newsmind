@@ -1,0 +1,147 @@
+====================================================================================================
+SmartNoteBook V3 — Certification (18 سيناريو)
+====================================================================================================
+
+┌─[01] 01_logical_win  ✓ PASS
+│ INPUT          : pnl=0.003  mind_outputs=present
+│ classification : got=logical_win  expect=logical_win  ✓
+│ quality        : got=good  expect=good  ✓
+│ responsible    : got=news  expect=any  ✓
+│ supporting     : ['news', 'market', 'chart']
+│ contradicting  : []
+│ lesson         : logical_win: all_aligned:['news', 'market', 'chart']
+│ stored?        : True
+└─ correct? PASS
+
+┌─[02] 02_lucky_win_grade_mismatch  ✓ PASS
+│ INPUT          : pnl=0.002  mind_outputs=present
+│ classification : got=lucky_win_grade_mismatch  expect=lucky_win_grade_mismatch  ✓
+│ quality        : got=lucky  expect=lucky  ✓
+│ responsible    : got=chart  expect=any  ✓
+│ supporting     : ['chart']
+│ contradicting  : []
+│ lesson         : lucky_win_grade_mismatch: single_brain_alignment:['chart']
+│ stored?        : True
+└─ correct? PASS
+
+┌─[03] 03_lucky_win_thin  ✓ PASS
+│ INPUT          : pnl=0.0001  mind_outputs=present
+│ classification : got=lucky_win_thin_margin  expect=lucky_win_thin_margin  ✓
+│ quality        : got=good  expect=good  ✓
+│ responsible    : got=news  expect=any  ✓
+│ supporting     : ['news', 'market', 'chart']
+│ contradicting  : []
+│ lesson         : lucky_win_thin_margin: all_aligned:['news', 'market', 'chart']
+│ stored?        : True
+└─ correct? PASS
+
+┌─[04] 04_valid_loss  ✓ PASS
+│ INPUT          : pnl=-0.001  mind_outputs=present
+│ classification : got=valid_loss  expect=valid_loss  ✓
+│ quality        : got=valid_loss  expect=valid_loss  ✓
+│ responsible    : got=none  expect=none  ✓
+│ supporting     : ['news', 'market', 'chart']
+│ contradicting  : []
+│ lesson         : valid_loss: all_aligned_but_market_disagreed
+│ stored?        : True
+└─ correct? PASS
+
+┌─[05] 05_bad_loss_late_entry  ✓ PASS
+│ INPUT          : pnl=-0.001  mind_outputs=present
+│ classification : got=bad_loss_late_entry  expect=bad_loss_late_entry  ✓
+│ quality        : got=bad  expect=bad  ✓
+│ responsible    : got=chart  expect=chart  ✓
+│ supporting     : ['news', 'market', 'chart']
+│ contradicting  : []
+│ lesson         : bad_loss_late_entry: late_entry_chart_should_block
+│ stored?        : True
+└─ correct? PASS
+
+┌─[06] 06_bad_loss_fake_breakout  ✓ PASS
+│ INPUT          : pnl=-0.001  mind_outputs=present
+│ classification : got=bad_loss_fake_breakout  expect=bad_loss_fake_breakout  ✓
+│ quality        : got=bad  expect=bad  ✓
+│ responsible    : got=chart  expect=chart  ✓
+│ supporting     : ['news', 'market', 'chart']
+│ contradicting  : []
+│ lesson         : bad_loss_fake_breakout: fake_breakout_chart_missed
+│ stored?        : True
+└─ correct? PASS
+
+┌─[07] 07_spread_loss  ✓ PASS
+│ INPUT          : pnl=-0.0005  mind_outputs=present
+│ classification : got=spread_loss  expect=spread_loss  ✓
+│ quality        : got=bad  expect=bad  ✓
+│ responsible    : got=execution  expect=any  ✓
+│ supporting     : ['news', 'market', 'chart']
+│ contradicting  : []
+│ lesson         : spread_loss: spread_or_slippage_excess
+│ stored?        : True
+└─ correct? PASS
+
+┌─[08] 08_bad_loss_choppy  ✓ PASS
+│ INPUT          : pnl=-0.001  mind_outputs=present
+│ classification : got=bad_loss_choppy_market  expect=bad_loss_choppy_market  ✓
+│ quality        : got=bad  expect=bad  ✓
+│ responsible    : got=market  expect=market  ✓
+│ supporting     : ['news', 'market', 'chart']
+│ contradicting  : []
+│ lesson         : bad_loss_choppy_market: choppy_market_market_should_block
+│ stored?        : True
+└─ correct? PASS
+
+┌─[09] 09_bad_loss_misaligned  ✓ PASS
+│ INPUT          : pnl=-0.001  mind_outputs=present
+│ classification : got=bad_loss_misaligned  expect=bad_loss_misaligned  ✓
+│ quality        : got=bad  expect=bad  ✓
+│ responsible    : got=gate  expect=any  ✓
+│ supporting     : []
+│ contradicting  : ['news', 'market', 'chart']
+│ lesson         : bad_loss_misaligned: entered_against_brains:['news', 'market', 'chart']
+│ stored?        : True
+└─ correct? PASS
+
+┌─[10] 10_breakeven  ✓ PASS
+│ INPUT          : pnl=0.0  mind_outputs=present
+│ classification : got=breakeven  expect=breakeven  ✓
+│ quality        : got=unclear  expect=unclear  ✓
+│ responsible    : got=  expect=any  ✓
+│ supporting     : ['news', 'market', 'chart']
+│ contradicting  : []
+│ lesson         : 
+│ stored?        : True
+└─ correct? PASS
+
+┌─[11] 11_system_bug  ✓ PASS
+│ INPUT          : pnl=-0.001  mind_outputs=present
+│ classification : got=system_bug  expect=system_bug  ✓
+│ quality        : got=bad  expect=bad  ✓
+│ responsible    : got=system  expect=any  ✓
+│ supporting     : ['news', 'market', 'chart']
+│ contradicting  : []
+│ lesson         : system_bug: system_bug_detected
+│ stored?        : True
+└─ correct? PASS
+
+┌─[12] 12_missing_mind_outputs  ✓ PASS
+│ INPUT          : pnl=-0.001  mind_outputs=NONE
+│ classification : got=missing_mind_outputs  expect=missing_mind_outputs  ✓
+│ quality        : got=unclear  expect=unclear  ✓
+│ responsible    : got=  expect=any  ✓
+│ supporting     : []
+│ contradicting  : []
+│ lesson         : missing_mind_outputs: missing_mind_outputs
+│ stored?        : True
+└─ correct? PASS
+
+--- Storage / search tests ---
+[13] rejected_event_recorded: ✓ PASS
+[14] bug_recorded            : ✓ PASS
+[15] daily_summary           : ✓ PASS n_trades=12 pnl=-0.0024
+[16] search_why_lose         : ✓ PASS 8 losses
+[17] anti_overfitting        : ✓ PASS lessons=0
+[18] duplicate_trade_rejected: ✓ PASS
+
+====================================================================================================
+FINAL: 18/18 PASSED
+====================================================================================================

@@ -1,0 +1,432 @@
+====================================================================================================
+GateMind V3 — Certification Test (25 سيناريو)
+====================================================================================================
+
+┌─[01] 01_all_top_aligned  ✓ PASS
+│ INPUT     : pair=EUR/USD  audit_id=1ad12015
+│ GRADES    : {'news': 'A+', 'market': 'A+', 'chart': 'A+'}
+│ PERMS     : {'news': 'allow', 'market': 'allow', 'chart': 'allow'}
+│ ALIGN     : aligned  conf_summary=0.9
+│ RISK      : ok  rr=2.0
+│ SESSION   : in_window
+│ NEWS      : ok
+│ EXECUTION : ok  spread=ok  slip=ok
+│ STATE     : flat  daily=ok
+│ BROKER    : mode=live  live=True
+│ DECISION  : enter/buy  approved=True  expect=enter  ✓
+│ BLOCKING  : none
+│ WARNINGS  : none
+│ REASON    : ENTER: aligned/buy all_grades_top conf=0.9 rr=2.0
+└─ correct? PASS
+
+┌─[02] 02_one_brain_B  ✓ PASS
+│ INPUT     : pair=EUR/USD  audit_id=a73d2e26
+│ GRADES    : {'news': 'A+', 'market': 'B', 'chart': 'A+'}
+│ PERMS     : {'news': 'allow', 'market': 'wait', 'chart': 'allow'}
+│ ALIGN     : partial  conf_summary=0.767
+│ RISK      : ok  rr=2.0
+│ SESSION   : in_window
+│ NEWS      : ok
+│ EXECUTION : ok  spread=ok  slip=ok
+│ STATE     : flat  daily=ok
+│ BROKER    : mode=live  live=True
+│ DECISION  : wait/none  approved=False  expect=wait  ✓
+│ BLOCKING  : none
+│ WARNINGS  : ['market_grade_B', 'market_wait', 'alignment_partial']
+│ REASON    : WAIT: market_grade_B | market_wait | alignment_partial
+└─ correct? PASS
+
+┌─[03] 03_one_brain_C  ✓ PASS
+│ INPUT     : pair=EUR/USD  audit_id=a795a3ce
+│ GRADES    : {'news': 'A+', 'market': 'A+', 'chart': 'C'}
+│ PERMS     : {'news': 'allow', 'market': 'allow', 'chart': 'block'}
+│ ALIGN     : blocked_by_brain  conf_summary=0.6
+│ RISK      : ok  rr=2.0
+│ SESSION   : in_window
+│ NEWS      : ok
+│ EXECUTION : ok  spread=ok  slip=ok
+│ STATE     : flat  daily=ok
+│ BROKER    : mode=live  live=True
+│ DECISION  : block/none  approved=False  expect=block  ✓
+│ BLOCKING  : ['chart_block:fake_breakout', 'chart_grade_C', "alignment_blocked:blocked_by=['chart']"]
+│ WARNINGS  : none
+│ REASON    : BLOCK: chart_block:fake_breakout | chart_grade_C | alignment_blocked:blocked_by=['chart']
+└─ correct? PASS
+
+┌─[04] 04_news_block  ✓ PASS
+│ INPUT     : pair=EUR/USD  audit_id=8fbc87c0
+│ GRADES    : {'news': 'C', 'market': 'A+', 'chart': 'A+'}
+│ PERMS     : {'news': 'block', 'market': 'allow', 'chart': 'allow'}
+│ ALIGN     : blocked_by_brain  conf_summary=0.6
+│ RISK      : ok  rr=2.0
+│ SESSION   : in_window
+│ NEWS      : block
+│ EXECUTION : ok  spread=ok  slip=ok
+│ STATE     : flat  daily=ok
+│ BROKER    : mode=live  live=True
+│ DECISION  : block/none  approved=False  expect=block  ✓
+│ BLOCKING  : ['news_block:NFP_pre_window', 'news_grade_C', "alignment_blocked:blocked_by=['news']"]
+│ WARNINGS  : none
+│ REASON    : BLOCK: news_block:NFP_pre_window | news_grade_C | alignment_blocked:blocked_by=['news']
+└─ correct? PASS
+
+┌─[05] 05_conflicting_directions  ✓ PASS
+│ INPUT     : pair=EUR/USD  audit_id=21261b4f
+│ GRADES    : {'news': 'A', 'market': 'A', 'chart': 'A'}
+│ PERMS     : {'news': 'allow', 'market': 'allow', 'chart': 'allow'}
+│ ALIGN     : conflicting  conf_summary=0.8
+│ RISK      : ok  rr=2.0
+│ SESSION   : in_window
+│ NEWS      : ok
+│ EXECUTION : ok  spread=ok  slip=ok
+│ STATE     : flat  daily=ok
+│ BROKER    : mode=live  live=True
+│ DECISION  : block/none  approved=False  expect=block  ✓
+│ BLOCKING  : ["alignment_conflicting:directions=['bullish', 'bearish', 'bullish']"]
+│ WARNINGS  : none
+│ REASON    : BLOCK: alignment_conflicting:directions=['bullish', 'bearish', 'bullish']
+└─ correct? PASS
+
+┌─[06] 06_low_confidence  ✓ PASS
+│ INPUT     : pair=EUR/USD  audit_id=ec7f5c89
+│ GRADES    : {'news': 'A', 'market': 'A', 'chart': 'A'}
+│ PERMS     : {'news': 'allow', 'market': 'allow', 'chart': 'allow'}
+│ ALIGN     : aligned  conf_summary=0.4
+│ RISK      : ok  rr=2.0
+│ SESSION   : in_window
+│ NEWS      : ok
+│ EXECUTION : ok  spread=ok  slip=ok
+│ STATE     : flat  daily=ok
+│ BROKER    : mode=live  live=True
+│ DECISION  : wait/none  approved=False  expect=wait  ✓
+│ BLOCKING  : none
+│ WARNINGS  : ['low_confidence:0.40<0.6']
+│ REASON    : WAIT: low_confidence:0.40<0.6
+└─ correct? PASS
+
+┌─[07] 07_warning_drops_to_wait  ✓ PASS
+│ INPUT     : pair=EUR/USD  audit_id=5f332440
+│ GRADES    : {'news': 'A+', 'market': 'B', 'chart': 'A+'}
+│ PERMS     : {'news': 'allow', 'market': 'wait', 'chart': 'allow'}
+│ ALIGN     : partial  conf_summary=0.8
+│ RISK      : ok  rr=2.0
+│ SESSION   : in_window
+│ NEWS      : ok
+│ EXECUTION : ok  spread=ok  slip=ok
+│ STATE     : flat  daily=ok
+│ BROKER    : mode=live  live=True
+│ DECISION  : wait/none  approved=False  expect=wait  ✓
+│ BLOCKING  : none
+│ WARNINGS  : ['market_grade_B', 'market_wait', 'alignment_partial']
+│ REASON    : WAIT: market_grade_B | market_wait | alignment_partial
+└─ correct? PASS
+
+┌─[08] 08_stop_missing  ✓ PASS
+│ INPUT     : pair=EUR/USD  audit_id=6da54038
+│ GRADES    : {'news': 'A+', 'market': 'A+', 'chart': 'A+'}
+│ PERMS     : {'news': 'allow', 'market': 'allow', 'chart': 'allow'}
+│ ALIGN     : aligned  conf_summary=0.9
+│ RISK      : missing  rr=None
+│ SESSION   : in_window
+│ NEWS      : ok
+│ EXECUTION : ok  spread=ok  slip=ok
+│ STATE     : flat  daily=ok
+│ BROKER    : mode=live  live=True
+│ DECISION  : block/none  approved=False  expect=block  ✓
+│ BLOCKING  : ['risk_missing:stop_or_target_or_entry_missing']
+│ WARNINGS  : none
+│ REASON    : BLOCK: risk_missing:stop_or_target_or_entry_missing
+└─ correct? PASS
+
+┌─[09] 09_target_missing  ✓ PASS
+│ INPUT     : pair=EUR/USD  audit_id=116f0abb
+│ GRADES    : {'news': 'A+', 'market': 'A+', 'chart': 'A+'}
+│ PERMS     : {'news': 'allow', 'market': 'allow', 'chart': 'allow'}
+│ ALIGN     : aligned  conf_summary=0.9
+│ RISK      : missing  rr=None
+│ SESSION   : in_window
+│ NEWS      : ok
+│ EXECUTION : ok  spread=ok  slip=ok
+│ STATE     : flat  daily=ok
+│ BROKER    : mode=live  live=True
+│ DECISION  : block/none  approved=False  expect=block  ✓
+│ BLOCKING  : ['risk_missing:stop_or_target_or_entry_missing']
+│ WARNINGS  : none
+│ REASON    : BLOCK: risk_missing:stop_or_target_or_entry_missing
+└─ correct? PASS
+
+┌─[10] 10_rr_too_low  ✓ PASS
+│ INPUT     : pair=EUR/USD  audit_id=1088acba
+│ GRADES    : {'news': 'A+', 'market': 'A+', 'chart': 'A+'}
+│ PERMS     : {'news': 'allow', 'market': 'allow', 'chart': 'allow'}
+│ ALIGN     : aligned  conf_summary=0.9
+│ RISK      : rr_too_low  rr=0.5
+│ SESSION   : in_window
+│ NEWS      : ok
+│ EXECUTION : ok  spread=ok  slip=ok
+│ STATE     : flat  daily=ok
+│ BROKER    : mode=live  live=True
+│ DECISION  : block/none  approved=False  expect=block  ✓
+│ BLOCKING  : ['risk_rr_too_low:rr=0.50']
+│ WARNINGS  : none
+│ REASON    : BLOCK: risk_rr_too_low:rr=0.50
+└─ correct? PASS
+
+┌─[11] 11_spread_too_high  ✓ PASS
+│ INPUT     : pair=EUR/USD  audit_id=db760814
+│ GRADES    : {'news': 'A+', 'market': 'A+', 'chart': 'A+'}
+│ PERMS     : {'news': 'allow', 'market': 'allow', 'chart': 'allow'}
+│ ALIGN     : aligned  conf_summary=0.9
+│ RISK      : ok  rr=2.0
+│ SESSION   : in_window
+│ NEWS      : ok
+│ EXECUTION : spread_too_wide  spread=dangerous  slip=unknown
+│ STATE     : flat  daily=ok
+│ BROKER    : mode=live  live=True
+│ DECISION  : block/none  approved=False  expect=block  ✓
+│ BLOCKING  : ['execution_spread_too_wide:spread=3.50>max=2.00']
+│ WARNINGS  : none
+│ REASON    : BLOCK: execution_spread_too_wide:spread=3.50>max=2.00
+└─ correct? PASS
+
+┌─[12] 12_slippage_too_high  ✓ PASS
+│ INPUT     : pair=EUR/USD  audit_id=7b46e17a
+│ GRADES    : {'news': 'A+', 'market': 'A+', 'chart': 'A+'}
+│ PERMS     : {'news': 'allow', 'market': 'allow', 'chart': 'allow'}
+│ ALIGN     : aligned  conf_summary=0.9
+│ RISK      : ok  rr=2.0
+│ SESSION   : in_window
+│ NEWS      : ok
+│ EXECUTION : slippage_too_high  spread=ok  slip=high
+│ STATE     : flat  daily=ok
+│ BROKER    : mode=live  live=True
+│ DECISION  : block/none  approved=False  expect=block  ✓
+│ BLOCKING  : ['execution_slippage_too_high:slippage=3.00>max=2.00']
+│ WARNINGS  : none
+│ REASON    : BLOCK: execution_slippage_too_high:slippage=3.00>max=2.00
+└─ correct? PASS
+
+┌─[13] 13_outside_window  ✓ PASS
+│ INPUT     : pair=EUR/USD  audit_id=cd475831
+│ GRADES    : {'news': 'A+', 'market': 'A+', 'chart': 'A+'}
+│ PERMS     : {'news': 'allow', 'market': 'allow', 'chart': 'allow'}
+│ ALIGN     : aligned  conf_summary=0.9
+│ RISK      : ok  rr=2.0
+│ SESSION   : outside
+│ NEWS      : ok
+│ EXECUTION : ok  spread=ok  slip=ok
+│ STATE     : flat  daily=ok
+│ BROKER    : mode=live  live=True
+│ DECISION  : block/none  approved=False  expect=block  ✓
+│ BLOCKING  : ['session_outside:ny_time=02:00 not_in_[(3, 5), (8, 12)]']
+│ WARNINGS  : none
+│ REASON    : BLOCK: session_outside:ny_time=02:00 not_in_[(3, 5), (8, 12)]
+└─ correct? PASS
+
+┌─[14] 14_pre_news_block  ✓ PASS
+│ INPUT     : pair=EUR/USD  audit_id=67d725b7
+│ GRADES    : {'news': 'C', 'market': 'A+', 'chart': 'A+'}
+│ PERMS     : {'news': 'block', 'market': 'allow', 'chart': 'allow'}
+│ ALIGN     : blocked_by_brain  conf_summary=0.6
+│ RISK      : ok  rr=2.0
+│ SESSION   : in_window
+│ NEWS      : block
+│ EXECUTION : ok  spread=ok  slip=ok
+│ STATE     : flat  daily=ok
+│ BROKER    : mode=live  live=True
+│ DECISION  : block/none  approved=False  expect=block  ✓
+│ BLOCKING  : ['news_block:scheduled_NFP', 'news_grade_C', "alignment_blocked:blocked_by=['news']"]
+│ WARNINGS  : none
+│ REASON    : BLOCK: news_block:scheduled_NFP | news_grade_C | alignment_blocked:blocked_by=['news']
+└─ correct? PASS
+
+┌─[15] 15_post_news_wait  ✓ PASS
+│ INPUT     : pair=EUR/USD  audit_id=6b2f8759
+│ GRADES    : {'news': 'B', 'market': 'A+', 'chart': 'A+'}
+│ PERMS     : {'news': 'wait', 'market': 'allow', 'chart': 'allow'}
+│ ALIGN     : partial  conf_summary=0.767
+│ RISK      : ok  rr=2.0
+│ SESSION   : in_window
+│ NEWS      : wait
+│ EXECUTION : ok  spread=ok  slip=ok
+│ STATE     : flat  daily=ok
+│ BROKER    : mode=live  live=True
+│ DECISION  : wait/none  approved=False  expect=wait  ✓
+│ BLOCKING  : none
+│ WARNINGS  : ['news_grade_B', 'news_wait', 'alignment_partial']
+│ REASON    : WAIT: news_grade_B | news_wait | alignment_partial
+└─ correct? PASS
+
+┌─[16] 16_position_open  ✓ PASS
+│ INPUT     : pair=EUR/USD  audit_id=b96fbf7b
+│ GRADES    : {'news': 'A+', 'market': 'A+', 'chart': 'A+'}
+│ PERMS     : {'news': 'allow', 'market': 'allow', 'chart': 'allow'}
+│ ALIGN     : aligned  conf_summary=0.9
+│ RISK      : ok  rr=2.0
+│ SESSION   : in_window
+│ NEWS      : ok
+│ EXECUTION : ok  spread=ok  slip=ok
+│ STATE     : position_already_open  daily=ok
+│ BROKER    : mode=live  live=True
+│ DECISION  : block/none  approved=False  expect=block  ✓
+│ BLOCKING  : ['state_position_already_open:open_position_EUR/USD_buy_1000']
+│ WARNINGS  : none
+│ REASON    : BLOCK: state_position_already_open:open_position_EUR/USD_buy_1000
+└─ correct? PASS
+
+┌─[17] 17_pending_order  ✓ PASS
+│ INPUT     : pair=EUR/USD  audit_id=cbe538d8
+│ GRADES    : {'news': 'A+', 'market': 'A+', 'chart': 'A+'}
+│ PERMS     : {'news': 'allow', 'market': 'allow', 'chart': 'allow'}
+│ ALIGN     : aligned  conf_summary=0.9
+│ RISK      : ok  rr=2.0
+│ SESSION   : in_window
+│ NEWS      : ok
+│ EXECUTION : ok  spread=ok  slip=ok
+│ STATE     : pending_order_exists  daily=ok
+│ BROKER    : mode=live  live=True
+│ DECISION  : block/none  approved=False  expect=block  ✓
+│ BLOCKING  : ['state_pending_order_exists:pending_EUR/USD_sell_500']
+│ WARNINGS  : none
+│ REASON    : BLOCK: state_pending_order_exists:pending_EUR/USD_sell_500
+└─ correct? PASS
+
+┌─[18] 18_consecutive_losses_cooldown  ✓ PASS
+│ INPUT     : pair=EUR/USD  audit_id=f454fd64
+│ GRADES    : {'news': 'A+', 'market': 'A+', 'chart': 'A+'}
+│ PERMS     : {'news': 'allow', 'market': 'allow', 'chart': 'allow'}
+│ ALIGN     : aligned  conf_summary=0.9
+│ RISK      : ok  rr=2.0
+│ SESSION   : in_window
+│ NEWS      : ok
+│ EXECUTION : ok  spread=ok  slip=ok
+│ STATE     : after_3_losses_cooldown  daily=ok
+│ BROKER    : mode=live  live=True
+│ DECISION  : block/none  approved=False  expect=block  ✓
+│ BLOCKING  : ['state_after_3_losses_cooldown:3+_consecutive_losses_no_cooldown_set']
+│ WARNINGS  : none
+│ REASON    : BLOCK: state_after_3_losses_cooldown:3+_consecutive_losses_no_cooldown_set
+└─ correct? PASS
+
+┌─[19] 19_daily_loss_limit  ✓ PASS
+│ INPUT     : pair=EUR/USD  audit_id=6496dfce
+│ GRADES    : {'news': 'A+', 'market': 'A+', 'chart': 'A+'}
+│ PERMS     : {'news': 'allow', 'market': 'allow', 'chart': 'allow'}
+│ ALIGN     : aligned  conf_summary=0.9
+│ RISK      : ok  rr=2.0
+│ SESSION   : in_window
+│ NEWS      : ok
+│ EXECUTION : ok  spread=ok  slip=ok
+│ STATE     : blocked_by_loss_limit  daily=at_loss_limit
+│ BROKER    : mode=live  live=True
+│ DECISION  : block/none  approved=False  expect=block  ✓
+│ BLOCKING  : ['state_blocked_by_loss_limit:daily_loss=5.00%>=5.00%', 'daily_loss_limit_hit']
+│ WARNINGS  : none
+│ REASON    : BLOCK: state_blocked_by_loss_limit:daily_loss=5.00%>=5.00% | daily_loss_limit_hit
+└─ correct? PASS
+
+┌─[20] 20_daily_trade_limit  ✓ PASS
+│ INPUT     : pair=EUR/USD  audit_id=19867686
+│ GRADES    : {'news': 'A+', 'market': 'A+', 'chart': 'A+'}
+│ PERMS     : {'news': 'allow', 'market': 'allow', 'chart': 'allow'}
+│ ALIGN     : aligned  conf_summary=0.9
+│ RISK      : ok  rr=2.0
+│ SESSION   : in_window
+│ NEWS      : ok
+│ EXECUTION : ok  spread=ok  slip=ok
+│ STATE     : blocked_by_trade_limit  daily=at_trade_limit
+│ BROKER    : mode=live  live=True
+│ DECISION  : block/none  approved=False  expect=block  ✓
+│ BLOCKING  : ['state_blocked_by_trade_limit:trades_today=10>=10', 'daily_trade_limit_hit']
+│ WARNINGS  : none
+│ REASON    : BLOCK: state_blocked_by_trade_limit:trades_today=10>=10 | daily_trade_limit_hit
+└─ correct? PASS
+
+┌─[21] 21_pair_disabled  ✓ PASS
+│ INPUT     : pair=GBP/USD  audit_id=9c61fd85
+│ GRADES    : {'news': 'A+', 'market': 'A+', 'chart': 'A+'}
+│ PERMS     : {'news': 'allow', 'market': 'allow', 'chart': 'allow'}
+│ ALIGN     : aligned  conf_summary=0.9
+│ RISK      : ok  rr=2.0
+│ SESSION   : in_window
+│ NEWS      : ok
+│ EXECUTION : disabled_pair  spread=ok  slip=unknown
+│ STATE     : flat  daily=ok
+│ BROKER    : mode=live  live=True
+│ DECISION  : block/none  approved=False  expect=block  ✓
+│ BLOCKING  : ['execution_disabled_pair:pair_GBP/USD_disabled']
+│ WARNINGS  : none
+│ REASON    : BLOCK: execution_disabled_pair:pair_GBP/USD_disabled
+└─ correct? PASS
+
+┌─[22] 22_monitoring_pair_live  ✓ PASS
+│ INPUT     : pair=USD/JPY  audit_id=7258b815
+│ GRADES    : {'news': 'A+', 'market': 'A+', 'chart': 'A+'}
+│ PERMS     : {'news': 'allow', 'market': 'allow', 'chart': 'allow'}
+│ ALIGN     : aligned  conf_summary=0.9
+│ RISK      : ok  rr=2.0
+│ SESSION   : in_window
+│ NEWS      : ok
+│ EXECUTION : monitoring_pair_live_blocked  spread=ok  slip=unknown
+│ STATE     : flat  daily=ok
+│ BROKER    : mode=live  live=True
+│ DECISION  : block/none  approved=False  expect=block  ✓
+│ BLOCKING  : ['execution_monitoring_pair_live_blocked:pair_monitoring_cannot_go_live']
+│ WARNINGS  : none
+│ REASON    : BLOCK: execution_monitoring_pair_live_blocked:pair_monitoring_cannot_go_live
+└─ correct? PASS
+
+┌─[23] 23_broker_unsafe  ✓ PASS
+│ INPUT     : pair=EUR/USD  audit_id=93c43df9
+│ GRADES    : {'news': 'A+', 'market': 'A+', 'chart': 'A+'}
+│ PERMS     : {'news': 'allow', 'market': 'allow', 'chart': 'allow'}
+│ ALIGN     : aligned  conf_summary=0.9
+│ RISK      : ok  rr=2.0
+│ SESSION   : in_window
+│ NEWS      : ok
+│ EXECUTION : broker_unsafe  spread=ok  slip=unknown
+│ STATE     : flat  daily=ok
+│ BROKER    : mode=unknown_broker  live=True
+│ DECISION  : block/none  approved=False  expect=block  ✓
+│ BLOCKING  : ['execution_broker_unsafe:broker_mode_unknown:unknown_broker']
+│ WARNINGS  : none
+│ REASON    : BLOCK: execution_broker_unsafe:broker_mode_unknown:unknown_broker
+└─ correct? PASS
+
+┌─[24] 24_data_stale  ✓ PASS
+│ INPUT     : pair=EUR/USD  audit_id=77a12953
+│ GRADES    : {'news': 'A+', 'market': 'A+', 'chart': 'A+'}
+│ PERMS     : {'news': 'allow', 'market': 'allow', 'chart': 'allow'}
+│ ALIGN     : aligned  conf_summary=0.9
+│ RISK      : ok  rr=2.0
+│ SESSION   : in_window
+│ NEWS      : ok
+│ EXECUTION : ok  spread=ok  slip=ok
+│ STATE     : data_stale  daily=ok
+│ BROKER    : mode=live  live=True
+│ DECISION  : block/none  approved=False  expect=block  ✓
+│ BLOCKING  : ['state_data_stale:latency=2000.0ms>1000.0ms']
+│ WARNINGS  : none
+│ REASON    : BLOCK: state_data_stale:latency=2000.0ms>1000.0ms
+└─ correct? PASS
+
+┌─[25] 25_retry_outside_window  ✓ PASS
+│ INPUT     : pair=EUR/USD  audit_id=edec84c5
+│ GRADES    : {'news': 'A+', 'market': 'A+', 'chart': 'A+'}
+│ PERMS     : {'news': 'allow', 'market': 'allow', 'chart': 'allow'}
+│ ALIGN     : aligned  conf_summary=0.9
+│ RISK      : ok  rr=2.0
+│ SESSION   : outside
+│ NEWS      : ok
+│ EXECUTION : ok  spread=ok  slip=ok
+│ STATE     : flat  daily=ok
+│ BROKER    : mode=live  live=True
+│ DECISION  : block/none  approved=False  expect=block  ✓
+│ BLOCKING  : ['session_outside:ny_time=02:00 not_in_[(3, 5), (8, 12)]']
+│ WARNINGS  : none
+│ REASON    : BLOCK: session_outside:ny_time=02:00 not_in_[(3, 5), (8, 12)]
+└─ correct? PASS
+
+====================================================================================================
+FINAL: 25/25 PASSED  (100%)
+====================================================================================================

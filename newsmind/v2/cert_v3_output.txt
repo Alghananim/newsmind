@@ -1,0 +1,172 @@
+====================================================================================================
+NewsMind V3 — Certification Test (15 سيناريو)
+====================================================================================================
+
+┌─[01] CPI_strong  ✓ PASS
+│ INPUT      : US CPI prints 4.2% vs 3.5% expected — hot inflation
+│ SOURCE     : reuters_wire (tier1_wire)  trusted=True  confirmations=3
+│ FRESHNESS  : got=fresh  expect=fresh  ✓
+│ VERIFY     : confirmed  conflicts=()  
+│ IMPACT     : level=high  bias=bearish  risk=unclear  ✓
+│ GRADE      : got=A+  expect=[A..A+]  ✓
+│ PERMISSION : got=allow  expect=allow  ✓
+│ REASON     : fresh_verified|iq:event:US_CPI,surprise:+0.20,hot
+└─ correct? PASS
+
+┌─[02] CPI_weak  ✓ PASS
+│ INPUT      : US CPI prints 2.0% vs 3.0% expected — soft inflation
+│ SOURCE     : reuters_wire (tier1_wire)  trusted=True  confirmations=3
+│ FRESHNESS  : got=fresh  expect=fresh  ✓
+│ VERIFY     : confirmed  conflicts=()  
+│ IMPACT     : level=high  bias=bullish  risk=unclear  ✓
+│ GRADE      : got=A+  expect=[A..A+]  ✓
+│ PERMISSION : got=allow  expect=allow  ✓
+│ REASON     : fresh_verified|iq:event:US_CPI,surprise:-0.33,cold
+└─ correct? PASS
+
+┌─[03] NFP_strong  ✓ PASS
+│ INPUT      : US NFP +320k vs +180k expected — hot labor market
+│ SOURCE     : reuters_wire (tier1_wire)  trusted=True  confirmations=3
+│ FRESHNESS  : got=fresh  expect=fresh  ✓
+│ VERIFY     : confirmed  conflicts=()  
+│ IMPACT     : level=high  bias=bearish  risk=unclear  ✓
+│ GRADE      : got=A+  expect=[A..A+]  ✓
+│ PERMISSION : got=allow  expect=allow  ✓
+│ REASON     : fresh_verified|iq:event:US_NFP,surprise:+0.78,hot
+└─ correct? PASS
+
+┌─[04] NFP_weak  ✓ PASS
+│ INPUT      : US NFP +50k vs +180k expected — labor cooling
+│ SOURCE     : reuters_wire (tier1_wire)  trusted=True  confirmations=3
+│ FRESHNESS  : got=fresh  expect=fresh  ✓
+│ VERIFY     : confirmed  conflicts=()  
+│ IMPACT     : level=high  bias=bullish  risk=unclear  ✓
+│ GRADE      : got=A+  expect=[A..A+]  ✓
+│ PERMISSION : got=allow  expect=allow  ✓
+│ REASON     : fresh_verified|iq:event:US_NFP,surprise:-0.72,cold
+└─ correct? PASS
+
+┌─[05] Fed_surprise_cut  ✓ PASS
+│ INPUT      : Fed surprises with 50bp cut — markets did not expect
+│ SOURCE     : reuters_wire (tier1_wire)  trusted=True  confirmations=2
+│ FRESHNESS  : got=fresh  expect=fresh  ✓
+│ VERIFY     : confirmed  conflicts=()  
+│ IMPACT     : level=unknown  bias=bullish  risk=unclear  ✓
+│ GRADE      : got=A  expect=[B..A]  ✓
+│ PERMISSION : got=allow  expect=allow  ✓
+│ REASON     : fresh_verified|iq:dovish
+└─ correct? PASS
+
+┌─[06] Fed_hawkish  ✓ PASS
+│ INPUT      : Powell signals further hikes needed — hawkish
+│ SOURCE     : reuters_wire (tier1_wire)  trusted=True  confirmations=2
+│ FRESHNESS  : got=fresh  expect=fresh  ✓
+│ VERIFY     : confirmed  conflicts=()  
+│ IMPACT     : level=medium  bias=bearish  risk=unclear  ✓
+│ GRADE      : got=A  expect=[B..A]  ✓
+│ PERMISSION : got=allow  expect=allow  ✓
+│ REASON     : fresh_verified|iq:event:FED_SPEAKER,hawkish
+└─ correct? PASS
+
+┌─[07] Fed_dovish  ✓ PASS
+│ INPUT      : Powell hints rate cuts coming — dovish
+│ SOURCE     : reuters_wire (tier1_wire)  trusted=True  confirmations=2
+│ FRESHNESS  : got=fresh  expect=fresh  ✓
+│ VERIFY     : confirmed  conflicts=()  
+│ IMPACT     : level=medium  bias=bullish  risk=unclear  ✓
+│ GRADE      : got=A  expect=[B..A]  ✓
+│ PERMISSION : got=allow  expect=allow  ✓
+│ REASON     : fresh_verified|iq:event:FED_SPEAKER,dovish
+└─ correct? PASS
+
+┌─[08] Recycled_news  ✓ PASS
+│ INPUT      : ECB hiked rates 25bp (republished from yesterday)
+│ SOURCE     : reuters_wire (tier1_wire)  trusted=True  confirmations=2
+│ FRESHNESS  : got=recycled  expect=recycled  ✓
+│ VERIFY     : confirmed  conflicts=()  
+│ IMPACT     : level=high  bias=bullish  risk=unclear  ✓
+│ GRADE      : got=C  expect=[C..C]  ✓
+│ PERMISSION : got=block  expect=block  ✓
+│ REASON     : news_age:recycled|iq:event:ECB_DECISION,hawkish
+└─ correct? PASS
+
+┌─[09] Twitter_rumor  ✓ PASS
+│ INPUT      : [X] Anonymous: Fed will cut tomorrow
+│ SOURCE     : twitter_official (social)  trusted=False  confirmations=1
+│ FRESHNESS  : got=fresh  expect=fresh  ✓
+│ VERIFY     : unconfirmed  conflicts=()  
+│ IMPACT     : level=unknown  bias=bullish  risk=unclear  ✓
+│ GRADE      : got=C  expect=[C..C]  ✓
+│ PERMISSION : got=wait  expect=wait  ✓
+│ REASON     : social_unconfirmed|iq:political_or_social_unverified,dovish
+└─ correct? PASS
+
+┌─[10] Trump_truth_social  ✓ PASS
+│ INPUT      : Trump (Truth Social): Fed must cut now
+│ SOURCE     : truth_social (social)  trusted=False  confirmations=1
+│ FRESHNESS  : got=fresh  expect=fresh  ✓
+│ VERIFY     : unconfirmed  conflicts=()  
+│ IMPACT     : level=unknown  bias=bullish  risk=unclear  ✓
+│ GRADE      : got=C  expect=[C..C]  ✓
+│ PERMISSION : got=wait  expect=wait  ✓
+│ REASON     : social_unconfirmed|iq:political_or_social_unverified,dovish
+└─ correct? PASS
+
+┌─[11] War_sanctions  ✓ PASS
+│ INPUT      : BREAKING: Major escalation in Middle East — sanctions imposed
+│ SOURCE     : reuters_wire (tier1_wire)  trusted=True  confirmations=2
+│ FRESHNESS  : got=fresh  expect=fresh  ✓
+│ VERIFY     : confirmed  conflicts=()  
+│ IMPACT     : level=high  bias=bearish  risk=risk_off  ✓
+│ GRADE      : got=A  expect=[B..A+]  ✓
+│ PERMISSION : got=wait  expect=wait  ✓
+│ REASON     : fresh_verified|iq:risk_off_cue,risk_mode:off,risk_off_implies_high_impact,usd_safe_haven_default|risk_off_caution
+└─ correct? PASS
+
+┌─[12] Conflicting_news  ✓ PASS
+│ INPUT      : Fed expected to CUT today — sources
+│ SOURCE     : reuters_wire (tier1_wire)  trusted=True  confirmations=1
+│ FRESHNESS  : got=fresh  expect=fresh  ✓
+│ VERIFY     : contradicted  conflicts=('bloomberg_wire',)  
+│ IMPACT     : level=unknown  bias=bullish  risk=unclear  ✓
+│ GRADE      : got=C  expect=[C..C]  ✓
+│ PERMISSION : got=wait  expect=wait  ✓
+│ REASON     : unverified_tier1_wire_n1|iq:dovish
+└─ correct? PASS
+
+┌─[13] No_timestamp  ✓ PASS
+│ INPUT      : Some macro headline (no timestamp)
+│ SOURCE     : reuters_wire (tier1_wire)  trusted=True  confirmations=2
+│ FRESHNESS  : got=unknown  expect=unknown  ✓
+│ VERIFY     : confirmed  conflicts=()  
+│ IMPACT     : level=unknown  bias=unclear  risk=unclear  ✓
+│ GRADE      : got=C  expect=[C..C]  ✓
+│ PERMISSION : got=wait  expect=wait  ✓
+│ REASON     : missing_timestamp
+└─ correct? PASS
+
+┌─[14] Source_failure  ✓ PASS
+│ INPUT      : (source outage)
+│ SOURCE     : news_v2 (calendar)  trusted=True  confirmations=0
+│ FRESHNESS  : got=unknown  expect=any  ✓
+│ VERIFY     : n_a  conflicts=()  
+│ IMPACT     : level=unknown  bias=neutral  risk=unclear  ✓
+│ GRADE      : got=C  expect=[C..C]  ✓
+│ PERMISSION : got=wait  expect=wait  ✓
+│ REASON     : sources_all_failed_or_silent:ok=0/err=1/never=0
+└─ correct? PASS
+
+┌─[15] Already_moved  ✓ PASS
+│ INPUT      : ECB unexpectedly hawkish
+│ SOURCE     : reuters_wire (tier1_wire)  trusted=True  confirmations=2
+│ FRESHNESS  : got=fresh  expect=fresh  ✓
+│ VERIFY     : confirmed  conflicts=()  
+│ IMPACT     : level=high  bias=bullish  risk=unclear  ✓
+│ GRADE      : got=C  expect=[C..C]  ✓
+│ PERMISSION : got=block  expect=block  ✓
+│ REASON     : chasing_market:chasing_4_signals|iq:event:ECB_DECISION,hawkish
+└─ correct? PASS
+
+====================================================================================================
+FINAL: 15/15 PASSED  (100%)
+====================================================================================================

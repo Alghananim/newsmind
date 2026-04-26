@@ -1,0 +1,8 @@
+.env
+.env.*
+!.env.example
+*.key
+secrets/
+__pycache__/
+*.pyc
+notebook/
