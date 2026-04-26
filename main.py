@@ -203,15 +203,19 @@ def main() -> int:
         "GBP/USD": "disabled",     # -14.20%/2y losing — research-only
     }
 
+    # GBP/USD is FULLY EXCLUDED from production decisions per user
+    # commandment after CYCLE-5 evidence: every variant tested halted
+    # at -14% to -15% on real OANDA over 2y. Until/unless a separate
+    # GBP-specific strategy is built and proves itself, the pair is
+    # research-only.
     PRODUCTION_DEFAULTS = {
-        # GAP-cycle discovery (real OANDA / 2y):
+        # GAP-cycle discovery (real OANDA / 2y, single-window):
         # EUR/USD best_eur: +36.17% PF 1.42 WR 41% (kill_asia + 1.5% risk)
         # USD/JPY best_jpy: +12.51% PF 1.49 WR 52% (kill_asia + 2.0% risk)
-        # NOTE: Pending walk-forward validation before live deployment.
-        # If WF fails, revert to kill_asia (+5.51% / +1.69%).
+        # PENDING: walk-forward validation in progress
         "EUR/USD": "best_eur",
         "USD/JPY": "best_jpy",
-        "GBP/USD": "kill_asia",   # disabled in PAIR_STATUS regardless
+        # GBP/USD intentionally absent — caught by PAIR_STATUS=disabled
     }
 
     # Resolve current pair's mode (env override always wins)
