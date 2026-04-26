@@ -170,6 +170,12 @@ TESTS = [
 
     # T12: PRODUCTION_STRICT — A grade only, conservative caps
     ("T12_production_strict", get_variant("production_strict")),
+
+    # T13: B-only diagnostic — exposes whether B is the real edge
+    ("T13_b_exclusive", get_variant("diag_b_exclusive")),
+
+    # T14: production canonical — A/A+ only per user policy
+    ("T14_production", get_variant("production")),
 ]
 
 

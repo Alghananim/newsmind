@@ -659,31 +659,28 @@ VARIANTS: dict[str, VariantFilter] = {
     ),
 
     # ------------------------------------------------------------------
-    # PRODUCTION_SAFE — all 12 audit-driven commandments applied:
-    #   ✓ kill_asia (the only proven helpful filter)
-    #   ✓ min_grade B (B = enter at half size, A/A+ = full)
-    #   ✓ max_spread_multiplier 2.0 (reject news widening)
-    #   ✓ max_trades_per_day 5 (cap over-trading)
-    #   ✓ max_daily_consecutive_losses 2 (cooling-off)
-    #   ✓ ATR surge filter 1.8 (block news spikes)
-    #   ✓ pre-news close (handled in runner via calendar 60-min post)
-    #   ✓ NO halt_pause (audit proved it disastrous; halt = stop)
-    #   ✓ NO drop_doubles (audit proved patterns are interdependent)
-    #   ✓ Default risk 0.5% scaled by grade (A+=1.5x, A=1.0x, B=0.5x)
+    # PRODUCTION POLICY (user commandment):
+    #   * C grade: NEVER enter
+    #   * B grade: WAIT only — no entry
+    #   * A grade: ENTER at 1.0x risk
+    #   * A+ grade: ENTER at 1.5x risk
     # ------------------------------------------------------------------
-    "production_safe": VariantFilter(
-        name="production_safe",
+
+    # PRODUCTION (canonical) — A-only entries per user policy.
+    # All 12 audit-driven commandments + strict grade enforcement.
+    "production": VariantFilter(
+        name="production",
         blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
         max_spread_multiplier=2.0,
         max_trades_per_day=5,
         max_daily_consecutive_losses=2,
         atr_surge_threshold=1.8,
-        min_grade="B",
+        min_grade="A",          # B = wait per user policy
         min_rr=2.0,
-        # default grade_risk_multipliers from runner: A+=1.5, A=1.0, B=0.5, C=0
+        # grade_risk_multipliers fall through to defaults: A=1.0, A+=1.5
     ),
 
-    # CONSERVATIVE — A grade only, strict everything
+    # PRODUCTION STRICT — even tighter (RR 2.5, max 3 trades/day).
     "production_strict": VariantFilter(
         name="production_strict",
         blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
@@ -694,6 +691,37 @@ VARIANTS: dict[str, VariantFilter] = {
         min_grade="A",
         min_rr=2.5,
         min_confidence=0.55,
+    ),
+
+    # production_safe kept under old name as alias for backward-compat,
+    # but maps to the strict A-only policy (no more B entries).
+    "production_safe": VariantFilter(
+        name="production_safe",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        max_spread_multiplier=2.0,
+        max_trades_per_day=5,
+        max_daily_consecutive_losses=2,
+        atr_surge_threshold=1.8,
+        min_grade="A",          # FIXED per user policy (was "B")
+        min_rr=2.0,
+    ),
+
+    # DIAGNOSTIC ONLY — tests if B is truly the best edge (synthetic
+    # evidence shows B has +0.169R while A has -0.135R). Used to expose
+    # ChartMind grade calibration inversion.
+    "diag_b_only": VariantFilter(
+        name="diag_b_only",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        min_grade="B",
+        # Custom multipliers: only B enters, A/A+ also enter
+        grade_risk_multipliers=(("A+", 1.0), ("A", 1.0), ("B", 1.0), ("C", 0.0)),
+    ),
+
+    "diag_b_exclusive": VariantFilter(
+        name="diag_b_exclusive",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        # B exclusive — A/A+ rejected via custom multipliers
+        grade_risk_multipliers=(("A+", 0.0), ("A", 0.0), ("B", 1.0), ("C", 0.0)),
     ),
 }
 

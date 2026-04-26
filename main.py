@@ -178,12 +178,11 @@ def main() -> int:
     #            Best was kill_asia at -15% (regime-specific).
     #            DO NOT TRADE this pair until edge is found.
     PRODUCTION_DEFAULTS = {
-        # production_safe applies ALL audit-driven commandments:
-        # kill_asia + spread reject + daily cap + cooling-off + ATR
-        # filter + min_grade B + grade-scaled risk + pre-news close +
-        # NO halt_pause + NO drop_doubles + min_rr 2.0
-        "EUR/USD": "production_safe",
-        "USD/JPY": "production_safe",
+        # USER POLICY: only A and A+ grades enter (B = wait, C = never).
+        # The "production" variant enforces this strictly.
+        # All 12 audit-driven commandments applied.
+        "EUR/USD": "production",
+        "USD/JPY": "production",
         # "GBP/USD": INTENTIONALLY EXCLUDED — no variant survived 2-yr WF
     }
     variant_name = (os.environ.get("VARIANT_FILTER", "").strip()
