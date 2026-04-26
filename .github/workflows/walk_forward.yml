@@ -21,16 +21,17 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # PRODUCTION CANDIDATES (audit-driven, all 12 commandments)
-          - variant: production_safe
+          # GAP-discovered best per pair (PENDING WF VALIDATION)
+          - variant: best_eur
             pair: EUR/USD
-          - variant: production_safe
+          - variant: best_jpy
             pair: USD/JPY
-          - variant: production_strict
+          # Combo with B-grade-only filter
+          - variant: best_eur_combo
             pair: EUR/USD
-          - variant: production_strict
+          - variant: best_jpy_combo
             pair: USD/JPY
-          # Anchor: kill_asia (the proven simple winner)
+          # Anchor: kill_asia (current production baseline)
           - variant: kill_asia
             pair: EUR/USD
           - variant: kill_asia
