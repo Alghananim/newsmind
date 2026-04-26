@@ -596,12 +596,44 @@ class BacktestRunner:
         self.signals_generated += 1
 
         # Risk check + sizing
-        verdict: RiskVerdict = self.risk.evaluate_entry(
-            state=self._risk_state,
-            direction=plan.direction,
-            entry_price=plan.entry_price,
-            stop_price=plan.stop_price,
-        )
+        # Geometric compounding: temporarily swap starting_equity to
+        # current_equity so the risk-pct calc sizes against grown capital.
+        if self.variant.geometric_risk and self._risk_state is not None:
+            saved_starting = self._risk_state.starting_equity
+            try:
+                self._risk_state = type(self._risk_state)(
+                    starting_equity=self._risk_state.current_equity,
+                    current_equity=self._risk_state.current_equity,
+                    peak_equity=self._risk_state.peak_equity,
+                    today=self._risk_state.today,
+                    today_starting_equity=self._risk_state.today_starting_equity,
+                    today_realised_pnl=self._risk_state.today_realised_pnl,
+                    today_trade_count=self._risk_state.today_trade_count,
+                    consecutive_losses=self._risk_state.consecutive_losses,
+                    halted_permanent=self._risk_state.halted_permanent,
+                    halt_reason=self._risk_state.halt_reason,
+                )
+                verdict: RiskVerdict = self.risk.evaluate_entry(
+                    state=self._risk_state,
+                    direction=plan.direction,
+                    entry_price=plan.entry_price,
+                    stop_price=plan.stop_price,
+                )
+            except Exception:
+                # Fallback: use original state
+                verdict = self.risk.evaluate_entry(
+                    state=self._risk_state,
+                    direction=plan.direction,
+                    entry_price=plan.entry_price,
+                    stop_price=plan.stop_price,
+                )
+        else:
+            verdict: RiskVerdict = self.risk.evaluate_entry(
+                state=self._risk_state,
+                direction=plan.direction,
+                entry_price=plan.entry_price,
+                stop_price=plan.stop_price,
+            )
         if not verdict.allow:
             self.rej_risk += 1
             return

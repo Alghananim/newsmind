@@ -176,6 +176,15 @@ TESTS = [
 
     # T14: production canonical — A/A+ only per user policy
     ("T14_production", get_variant("production")),
+
+    # GAP closure tests
+    ("T15_compound", get_variant("gap_compound")),
+    ("T16_risk1", get_variant("gap_risk1")),
+    ("T17_risk15", get_variant("gap_risk15")),
+    ("T18_risk2", get_variant("gap_risk2")),
+    ("T19_no_hour_block", get_variant("gap_no_hour_block")),
+    ("T20_combo_safe", get_variant("gap_combo_safe")),
+    ("T21_combo_aggressive", get_variant("gap_combo_aggressive")),
 ]
 
 

@@ -142,6 +142,12 @@ class VariantFilter:
     # Map of grade -> risk fraction. Defaults preserve legacy behaviour.
     grade_risk_multipliers: tuple = ()
 
+    # Geometric compounding: risk_per_trade_pct is computed against
+    # CURRENT equity instead of starting equity. With ~130 trades and
+    # +0.084R expectancy, this can amplify returns 1.5-2x over 2 years.
+    # FALSE = legacy fixed-dollar risk (audit-compatible).
+    geometric_risk: bool = False
+
     # Use ChartMindV2 (rebuilt confluence-based) instead of v1.
     # Default False = legacy v1 pattern matcher.
     # True = v2 with multi-timeframe trend + structure + candles + momentum
@@ -722,6 +728,58 @@ VARIANTS: dict[str, VariantFilter] = {
         blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
         # B exclusive — A/A+ rejected via custom multipliers
         grade_risk_multipliers=(("A+", 0.0), ("A", 0.0), ("B", 1.0), ("C", 0.0)),
+    ),
+
+    # ------------------------------------------------------------------
+    # GAP CLOSURE — close gap from +5.51% to +150% target.
+    # Each variant tests ONE leverage point. Adopt only if proven.
+    # ------------------------------------------------------------------
+
+    # GAP-H1: geometric compounding (risk = % of CURRENT equity)
+    "gap_compound": VariantFilter(
+        name="gap_compound",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        geometric_risk=True,
+    ),
+
+    # GAP-H2a: risk scaling 1.0%
+    "gap_risk1": VariantFilter(
+        name="gap_risk1",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        risk_pct_override=1.0,
+    ),
+    # GAP-H2b: risk scaling 1.5%
+    "gap_risk15": VariantFilter(
+        name="gap_risk15",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        risk_pct_override=1.5,
+    ),
+    # GAP-H2c: risk scaling 2.0%
+    "gap_risk2": VariantFilter(
+        name="gap_risk2",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        risk_pct_override=2.0,
+    ),
+
+    # GAP-H3: frequency boost — DON'T block any hours; let session.py
+    # filter handle it. More trades = more compounding opportunities.
+    "gap_no_hour_block": VariantFilter(
+        name="gap_no_hour_block",
+        # No hour filter — pure session.py windows only
+    ),
+
+    # GAP-COMBO: best leverage stack (compound + risk 1.0 + kill_asia)
+    "gap_combo_safe": VariantFilter(
+        name="gap_combo_safe",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        risk_pct_override=1.0,
+        geometric_risk=True,
+    ),
+    "gap_combo_aggressive": VariantFilter(
+        name="gap_combo_aggressive",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        risk_pct_override=1.5,
+        geometric_risk=True,
     ),
 }
 
