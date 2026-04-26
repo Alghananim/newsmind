@@ -781,6 +781,36 @@ VARIANTS: dict[str, VariantFilter] = {
         risk_pct_override=1.5,
         geometric_risk=True,
     ),
+
+    # ------------------------------------------------------------------
+    # PER-PAIR BEST DISCOVERED (real OANDA / 2y, GAP cycle):
+    # ------------------------------------------------------------------
+    # EUR/USD: kill_asia + 1.5% risk -> +36.17% PF 1.42 WR 41%
+    "best_eur": VariantFilter(
+        name="best_eur",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        risk_pct_override=1.5,
+    ),
+    # USD/JPY: kill_asia + 2.0% risk -> +12.51% PF 1.49 WR 52%
+    "best_jpy": VariantFilter(
+        name="best_jpy",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        risk_pct_override=2.0,
+    ),
+    # USD/JPY combo: b_exclusive + 2% risk (test if combination boosts)
+    "best_jpy_combo": VariantFilter(
+        name="best_jpy_combo",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        risk_pct_override=2.0,
+        grade_risk_multipliers=(("A+", 0.0), ("A", 0.0), ("B", 1.0), ("C", 0.0)),
+    ),
+    # EUR/USD combo: b_exclusive + 1.5% risk
+    "best_eur_combo": VariantFilter(
+        name="best_eur_combo",
+        blocked_hours_utc=(0, 1, 2, 3, 4, 5, 6, 7),
+        risk_pct_override=1.5,
+        grade_risk_multipliers=(("A+", 0.0), ("A", 0.0), ("B", 1.0), ("C", 0.0)),
+    ),
 }
 
 

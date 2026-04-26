@@ -204,9 +204,14 @@ def main() -> int:
     }
 
     PRODUCTION_DEFAULTS = {
-        "EUR/USD": "kill_asia",
-        "USD/JPY": "kill_asia",
-        "GBP/USD": "kill_asia",   # logged but disabled in live
+        # GAP-cycle discovery (real OANDA / 2y):
+        # EUR/USD best_eur: +36.17% PF 1.42 WR 41% (kill_asia + 1.5% risk)
+        # USD/JPY best_jpy: +12.51% PF 1.49 WR 52% (kill_asia + 2.0% risk)
+        # NOTE: Pending walk-forward validation before live deployment.
+        # If WF fails, revert to kill_asia (+5.51% / +1.69%).
+        "EUR/USD": "best_eur",
+        "USD/JPY": "best_jpy",
+        "GBP/USD": "kill_asia",   # disabled in PAIR_STATUS regardless
     }
 
     # Resolve current pair's mode (env override always wins)
