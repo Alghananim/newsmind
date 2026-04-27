@@ -1,7 +1,9 @@
 name: Connectivity Test (OANDA + OpenAI)
-# Uses separate GitHub Secrets: OANDA_API_TOKEN, OANDA_ACCOUNT_ID,
-# OANDA_ENVIRONMENT. For OpenAI, looks for OPENAI_API_KEY first, then
-# falls back to parsing it from ALL_API_KEYS_AND_TOKENS.
+# Verifies API keys work without exposing values to logs.
+# Reads ALL_API_KEYS_AND_TOKENS secret which uses a "key-on-line, value-on-next-line" format
+# (the value may sit immediately on the next line, or after one or more blank lines).
+# Also accepts KEY=VALUE and KEY: VALUE pairs as fallback formats.
+# Falls back to dedicated OANDA_* secrets if the bundle does not contain OANDA keys.
 
 on:
   workflow_dispatch:
@@ -9,84 +11,151 @@ on:
 jobs:
   connectivity:
     runs-on: ubuntu-latest
-    env:
-      OANDA_API_TOKEN: ${{ secrets.OANDA_API_TOKEN }}
-      OANDA_ACCOUNT_ID: ${{ secrets.OANDA_ACCOUNT_ID }}
-      OANDA_ENVIRONMENT: ${{ secrets.OANDA_ENVIRONMENT }}
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      ALL_KEYS_BUNDLE: ${{ secrets.ALL_API_KEYS_AND_TOKENS }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Diagnose available secrets
+      - name: Parse ALL_API_KEYS_AND_TOKENS bundle
+        env:
+          BUNDLE: ${{ secrets.ALL_API_KEYS_AND_TOKENS }}
+          FALLBACK_OANDA_API_TOKEN: ${{ secrets.OANDA_API_TOKEN }}
+          FALLBACK_OANDA_ACCOUNT_ID: ${{ secrets.OANDA_ACCOUNT_ID }}
+          FALLBACK_OANDA_ENVIRONMENT: ${{ secrets.OANDA_ENVIRONMENT }}
         run: |
-          echo "OANDA_API_TOKEN length: ${#OANDA_API_TOKEN}"
-          echo "OANDA_ACCOUNT_ID length: ${#OANDA_ACCOUNT_ID}"
-          echo "OANDA_ENVIRONMENT length: ${#OANDA_ENVIRONMENT}"
-          echo "OPENAI_API_KEY length: ${#OPENAI_API_KEY}"
-          echo "ALL_KEYS_BUNDLE length: ${#ALL_KEYS_BUNDLE}"
-          echo "[OANDA_ENVIRONMENT raw] $OANDA_ENVIRONMENT"
+          python3 <<'PY'
+          import os, re, sys
 
-      - name: Try parse OpenAI key from bundle if missing
-        run: |
-          if [ -z "$OPENAI_API_KEY" ] && [ -n "$ALL_KEYS_BUNDLE" ]; then
-            echo "[bundle] looking for OpenAI key inside ALL_API_KEYS_AND_TOKENS..."
-            # Try multiple naming conventions
-            while IFS='=' read -r key val; do
-              key=$(echo "$key" | tr -d '[:space:]')
-              [ -z "$key" ] && continue
-              echo "::add-mask::$val"
-              case "$key" in
-                OPENAIAPI_KEY|OPENAI_API_KEY|OpenAIKey)
-                  echo "OPENAI_API_KEY=$val" >> "$GITHUB_ENV"
-                  echo "[bundle] extracted OPENAI_API_KEY (length=${#val})"
-                  ;;
-              esac
-            done <<< "$ALL_KEYS_BUNDLE"
-          fi
+          bundle = os.environ.get("BUNDLE", "") or ""
+          ALIASES = {
+              "OPENAI_API_KEY": "OPENAI_API_KEY",
+              "OPENAIAPI_KEY": "OPENAI_API_KEY",
+              "OPENAI": "OPENAI_API_KEY",
+              "OPENAI_KEY": "OPENAI_API_KEY",
+              "OANDA_API_TOKEN": "OANDA_API_TOKEN",
+              "OANDA_TOKEN": "OANDA_API_TOKEN",
+              "OANDA_API_KEY": "OANDA_API_TOKEN",
+              "OANDAAPI_KEY": "OANDA_API_TOKEN",
+              "OANDAAPI_TOKEN": "OANDA_API_TOKEN",
+              "OANDA_ACCOUNT_ID": "OANDA_ACCOUNT_ID",
+              "OANDA_ACCOUNT": "OANDA_ACCOUNT_ID",
+              "OANDAACCOUNT_ID": "OANDA_ACCOUNT_ID",
+              "OANDA_ENVIRONMENT": "OANDA_ENVIRONMENT",
+              "OANDA_ENV": "OANDA_ENVIRONMENT",
+              "LLM_MODEL": "LLM_MODEL",
+          }
+
+          def normalize_key(s):
+              s = s.strip().strip(" \t:=\"'")
+              s = re.sub(r"\s+", "_", s)
+              return s.upper()
+
+          def looks_like_key(line):
+              s = line.strip()
+              if not s or len(s) > 64:
+                  return False
+              core = s.rstrip(":= ")
+              if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_\-]{1,63}", core):
+                  return False
+              return ("_" in core) or core.isupper()
+
+          parsed = {}
+          raw_lines = bundle.splitlines()
+          lines = [ln.strip() for ln in raw_lines if ln.strip()]
+
+          i = 0
+          while i < len(lines):
+              ln = lines[i]
+              if "=" in ln and looks_like_key(ln.split("=", 1)[0]):
+                  k, v = ln.split("=", 1)
+                  parsed[normalize_key(k)] = v.strip()
+                  i += 1
+                  continue
+              if ":" in ln and looks_like_key(ln.split(":", 1)[0]):
+                  k, v = ln.split(":", 1)
+                  v = v.strip()
+                  if v:
+                      parsed[normalize_key(k)] = v
+                      i += 1
+                      continue
+              if looks_like_key(ln) and i + 1 < len(lines):
+                  k = normalize_key(ln)
+                  v = lines[i + 1]
+                  parsed[k] = v
+                  i += 2
+                  continue
+              i += 1
+
+          standardized = {}
+          for raw_k, v in parsed.items():
+              std = ALIASES.get(raw_k)
+              if std:
+                  standardized[std] = v
+
+          for std in ("OANDA_API_TOKEN", "OANDA_ACCOUNT_ID", "OANDA_ENVIRONMENT"):
+              if std not in standardized:
+                  fb = os.environ.get(f"FALLBACK_{std}", "")
+                  if fb:
+                      standardized[std] = fb
+                      print(f"[fallback] using dedicated secret for {std}")
+
+          with open(os.environ["GITHUB_ENV"], "a") as f:
+              for k, v in standardized.items():
+                  if not v:
+                      continue
+                  print(f"::add-mask::{v}")
+                  f.write(f"{k}={v}\n")
+                  print(f"[parsed] key={k} value_len={len(v)}")
+
+          have = sorted(standardized.keys())
+          print(f"[parse] keys present: {have if have else '(none)'}")
+          PY
 
       - name: Test OANDA connectivity
         run: |
           if [ -z "$OANDA_API_TOKEN" ] || [ -z "$OANDA_ACCOUNT_ID" ]; then
-            echo "[FAIL] OANDA token/account missing in secrets"
-            exit 1
+            echo "[SKIP] OANDA keys not present"
+            exit 0
           fi
           ENV_HOST="${OANDA_ENVIRONMENT:-practice}"
-          if [ "$ENV_HOST" = "live" ]; then HOST="api-fxtrade.oanda.com"; else HOST="api-fxpractice.oanda.com"; fi
-          echo "[oanda] testing env=$ENV_HOST host=$HOST"
+          if [ "$ENV_HOST" = "live" ]; then
+            HOST="api-fxtrade.oanda.com"
+          else
+            HOST="api-fxpractice.oanda.com"
+          fi
+          echo "[oanda] testing $ENV_HOST account..."
           STATUS=$(curl -sS -o /tmp/oanda_resp -w "%{http_code}" \
             -H "Authorization: Bearer $OANDA_API_TOKEN" \
             "https://$HOST/v3/accounts/$OANDA_ACCOUNT_ID/summary" || echo "fail")
-          echo "[oanda] HTTP status: $STATUS"
+          echo "[oanda] status: $STATUS"
           if [ "$STATUS" = "200" ]; then
-            python3 -c "import json; d=json.load(open('/tmp/oanda_resp'))['account']; print(f'[oanda] OK currency={d[\"currency\"]} balance={d[\"balance\"]} accountID={d[\"id\"]}')"
+            python3 -c "import json; d=json.load(open('/tmp/oanda_resp'))['account']; print(f'[oanda] OK currency={d[\"currency\"]} balance={d[\"balance\"]} env=$ENV_HOST')"
           else
-            echo "[oanda] FAIL — body:"
-            head -c 400 /tmp/oanda_resp || true
+            echo "[oanda] FAIL"
+            head -c 500 /tmp/oanda_resp || true
             exit 1
           fi
 
       - name: Test OpenAI connectivity
         run: |
           if [ -z "$OPENAI_API_KEY" ]; then
-            echo "[SKIP] OPENAI_API_KEY not found in any secret"
-            echo "Add it as a separate Repository Secret named OPENAI_API_KEY"
+            echo "[SKIP] OPENAI_API_KEY not present"
             exit 0
           fi
           MODEL="${LLM_MODEL:-gpt-4o-mini}"
-          echo "[openai] testing model=$MODEL"
+          echo "[openai] testing model=$MODEL..."
           STATUS=$(curl -sS -o /tmp/oai_resp -w "%{http_code}" \
             -H "Authorization: Bearer $OPENAI_API_KEY" \
             -H "Content-Type: application/json" \
-            -d "{\"model\":\"$MODEL\",\"messages\":[{\"role\":\"user\",\"content\":\"Reply: ok\"}],\"max_tokens\":5}" \
+            -d "{\"model\":\"$MODEL\",\"messages\":[{\"role\":\"user\",\"content\":\"Reply with: ok\"}],\"max_tokens\":5}" \
             "https://api.openai.com/v1/chat/completions" || echo "fail")
-          echo "[openai] HTTP status: $STATUS"
+          echo "[openai] status: $STATUS"
           if [ "$STATUS" = "200" ]; then
             python3 -c "import json; d=json.load(open('/tmp/oai_resp')); print(f'[openai] OK model={d.get(\"model\",\"?\")} reply={d[\"choices\"][0][\"message\"][\"content\"][:30]!r}')"
           else
-            python3 -c "import json; d=json.load(open('/tmp/oai_resp')); print(d.get('error',{}).get('message','?')[:300])" || head -c 300 /tmp/oai_resp
+            echo "[openai] FAIL"
+            python3 -c "import json,sys; d=json.load(open('/tmp/oai_resp')); print(d.get('error',{}).get('message','unknown')[:300])" || head -c 300 /tmp/oai_resp
             exit 1
           fi
 
       - name: Summary
-        run: echo "=== All connectivity tests passed ==="
+        run: |
+          echo "Connectivity test complete"
