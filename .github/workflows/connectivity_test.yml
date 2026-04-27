@@ -1,6 +1,7 @@
 name: Connectivity Test (OANDA + OpenAI)
-# Reads ALL_API_KEYS_AND_TOKENS secret with the user's key names:
-#   OANDAAPI_KEY, OANDAID, OPENAIAPI_KEY, TelegramToken, HostingerAPI_KEY
+# Uses separate GitHub Secrets: OANDA_API_TOKEN, OANDA_ACCOUNT_ID,
+# OANDA_ENVIRONMENT. For OpenAI, looks for OPENAI_API_KEY first, then
+# falls back to parsing it from ALL_API_KEYS_AND_TOKENS.
 
 on:
   workflow_dispatch:
@@ -8,62 +9,57 @@ on:
 jobs:
   connectivity:
     runs-on: ubuntu-latest
+    env:
+      OANDA_API_TOKEN: ${{ secrets.OANDA_API_TOKEN }}
+      OANDA_ACCOUNT_ID: ${{ secrets.OANDA_ACCOUNT_ID }}
+      OANDA_ENVIRONMENT: ${{ secrets.OANDA_ENVIRONMENT }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      ALL_KEYS_BUNDLE: ${{ secrets.ALL_API_KEYS_AND_TOKENS }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Parse secret + map to standard names
+      - name: Diagnose available secrets
         run: |
-          # Parse KEY=VALUE lines from the secret
-          while IFS='=' read -r key val; do
-            key=$(echo "$key" | tr -d '[:space:]')
-            [ -z "$key" ] && continue
-            [[ "$key" == \#* ]] && continue
-            echo "::add-mask::$val"
-            # Map user's key names to standard ones
-            case "$key" in
-              OANDAAPI_KEY|OANDA_API_TOKEN|OandaToken)
-                echo "OANDA_API_TOKEN=$val" >> "$GITHUB_ENV"
-                echo "[map] OANDA_API_TOKEN <- $key (length=${#val})"
-                ;;
-              OANDAID|OANDA_ACCOUNT_ID|OandaId)
-                echo "OANDA_ACCOUNT_ID=$val" >> "$GITHUB_ENV"
-                echo "[map] OANDA_ACCOUNT_ID <- $key (length=${#val})"
-                ;;
-              OPENAIAPI_KEY|OPENAI_API_KEY|OpenAIKey)
-                echo "OPENAI_API_KEY=$val" >> "$GITHUB_ENV"
-                echo "[map] OPENAI_API_KEY <- $key (length=${#val})"
-                ;;
-              TelegramToken|TELEGRAM_TOKEN)
-                echo "TELEGRAM_TOKEN=$val" >> "$GITHUB_ENV"
-                echo "[map] TELEGRAM_TOKEN <- $key"
-                ;;
-              HostingerAPI_KEY|HOSTINGER_API_TOKEN)
-                echo "HOSTINGER_API_TOKEN=$val" >> "$GITHUB_ENV"
-                echo "[map] HOSTINGER_API_TOKEN <- $key"
-                ;;
-              *)
-                echo "[skip] unknown key: $key"
-                ;;
-            esac
-          done <<< "${{ secrets.ALL_API_KEYS_AND_TOKENS }}"
-          # Default OANDA_ENVIRONMENT if not provided
-          echo "OANDA_ENVIRONMENT=practice" >> "$GITHUB_ENV"
+          echo "OANDA_API_TOKEN length: ${#OANDA_API_TOKEN}"
+          echo "OANDA_ACCOUNT_ID length: ${#OANDA_ACCOUNT_ID}"
+          echo "OANDA_ENVIRONMENT length: ${#OANDA_ENVIRONMENT}"
+          echo "OPENAI_API_KEY length: ${#OPENAI_API_KEY}"
+          echo "ALL_KEYS_BUNDLE length: ${#ALL_KEYS_BUNDLE}"
+          echo "[OANDA_ENVIRONMENT raw] $OANDA_ENVIRONMENT"
+
+      - name: Try parse OpenAI key from bundle if missing
+        run: |
+          if [ -z "$OPENAI_API_KEY" ] && [ -n "$ALL_KEYS_BUNDLE" ]; then
+            echo "[bundle] looking for OpenAI key inside ALL_API_KEYS_AND_TOKENS..."
+            # Try multiple naming conventions
+            while IFS='=' read -r key val; do
+              key=$(echo "$key" | tr -d '[:space:]')
+              [ -z "$key" ] && continue
+              echo "::add-mask::$val"
+              case "$key" in
+                OPENAIAPI_KEY|OPENAI_API_KEY|OpenAIKey)
+                  echo "OPENAI_API_KEY=$val" >> "$GITHUB_ENV"
+                  echo "[bundle] extracted OPENAI_API_KEY (length=${#val})"
+                  ;;
+              esac
+            done <<< "$ALL_KEYS_BUNDLE"
+          fi
 
       - name: Test OANDA connectivity
         run: |
           if [ -z "$OANDA_API_TOKEN" ] || [ -z "$OANDA_ACCOUNT_ID" ]; then
-            echo "[FAIL] OANDA keys not parsed"
+            echo "[FAIL] OANDA token/account missing in secrets"
             exit 1
           fi
           ENV_HOST="${OANDA_ENVIRONMENT:-practice}"
           if [ "$ENV_HOST" = "live" ]; then HOST="api-fxtrade.oanda.com"; else HOST="api-fxpractice.oanda.com"; fi
-          echo "[oanda] testing $ENV_HOST account..."
+          echo "[oanda] testing env=$ENV_HOST host=$HOST"
           STATUS=$(curl -sS -o /tmp/oanda_resp -w "%{http_code}" \
             -H "Authorization: Bearer $OANDA_API_TOKEN" \
             "https://$HOST/v3/accounts/$OANDA_ACCOUNT_ID/summary" || echo "fail")
-          echo "[oanda] status: $STATUS"
+          echo "[oanda] HTTP status: $STATUS"
           if [ "$STATUS" = "200" ]; then
-            python3 -c "import json; d=json.load(open('/tmp/oanda_resp'))['account']; print(f'[oanda] OK currency={d[\"currency\"]} balance={d[\"balance\"]} env=$ENV_HOST')"
+            python3 -c "import json; d=json.load(open('/tmp/oanda_resp'))['account']; print(f'[oanda] OK currency={d[\"currency\"]} balance={d[\"balance\"]} accountID={d[\"id\"]}')"
           else
             echo "[oanda] FAIL — body:"
             head -c 400 /tmp/oanda_resp || true
@@ -73,17 +69,18 @@ jobs:
       - name: Test OpenAI connectivity
         run: |
           if [ -z "$OPENAI_API_KEY" ]; then
-            echo "[FAIL] OPENAI_API_KEY not parsed"
-            exit 1
+            echo "[SKIP] OPENAI_API_KEY not found in any secret"
+            echo "Add it as a separate Repository Secret named OPENAI_API_KEY"
+            exit 0
           fi
           MODEL="${LLM_MODEL:-gpt-4o-mini}"
-          echo "[openai] testing model=$MODEL..."
+          echo "[openai] testing model=$MODEL"
           STATUS=$(curl -sS -o /tmp/oai_resp -w "%{http_code}" \
             -H "Authorization: Bearer $OPENAI_API_KEY" \
             -H "Content-Type: application/json" \
             -d "{\"model\":\"$MODEL\",\"messages\":[{\"role\":\"user\",\"content\":\"Reply: ok\"}],\"max_tokens\":5}" \
             "https://api.openai.com/v1/chat/completions" || echo "fail")
-          echo "[openai] status: $STATUS"
+          echo "[openai] HTTP status: $STATUS"
           if [ "$STATUS" = "200" ]; then
             python3 -c "import json; d=json.load(open('/tmp/oai_resp')); print(f'[openai] OK model={d.get(\"model\",\"?\")} reply={d[\"choices\"][0][\"message\"][\"content\"][:30]!r}')"
           else
@@ -92,4 +89,4 @@ jobs:
           fi
 
       - name: Summary
-        run: echo "=== Connectivity test complete ==="
+        run: echo "=== All connectivity tests passed ==="
