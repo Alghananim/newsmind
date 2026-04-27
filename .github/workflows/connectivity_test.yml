@@ -3,6 +3,9 @@ name: Connectivity Test (OANDA + OpenAI)
 # Reads each key from its dedicated GitHub Secret (no bundle parsing).
 
 on:
+  push:
+    paths:
+      - .github/workflows/connectivity_test.yml
   workflow_dispatch:
 
 jobs:
