@@ -1,0 +1,44 @@
+name: Diagnose Bundle Format
+on:
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    env:
+      BUNDLE: ${{ secrets.ALL_API_KEYS_AND_TOKENS }}
+    steps:
+      - name: Analyze bundle format (no values exposed)
+        run: |
+          python3 << 'PYEOF'
+          import os, re
+          b = os.environ.get("BUNDLE", "")
+          print(f"[stat] total length: {len(b)}")
+          print(f"[stat] line count: {len(b.splitlines())}")
+          print(f"[stat] '=' count: {b.count('=')}")
+          print(f"[stat] ':' count: {b.count(':')}")
+          print(f"[stat] tab count: {b.count(chr(9))}")
+          print(f"[stat] starts with: {b[:1]!r}")
+          # Detect possible patterns by line
+          lines = b.splitlines()
+          print(f"[stat] non-empty lines: {sum(1 for l in lines if l.strip())}")
+          # For each line, classify shape
+          for i, line in enumerate(lines[:25]):
+              shape = ""
+              if not line.strip():
+                  shape = "EMPTY"
+              elif "=" in line:
+                  k, _, v = line.partition("=")
+                  shape = f"K=V len(K)={len(k.strip())} len(V)={len(v)}"
+              elif ":" in line:
+                  k, _, v = line.partition(":")
+                  shape = f"K:V len(K)={len(k.strip())} len(V)={len(v)}"
+              elif " " in line.strip():
+                  shape = f"K V (space-sep) len={len(line)}"
+              else:
+                  shape = f"single token len={len(line)}"
+              # Mask line content but show key name if it's all-caps
+              key_match = re.match(r'^([A-Z_][A-Z_0-9]+)', line)
+              key_name = key_match.group(1) if key_match else "?"
+              print(f"[line {i}] key={key_name} shape={shape}")
+          PYEOF
